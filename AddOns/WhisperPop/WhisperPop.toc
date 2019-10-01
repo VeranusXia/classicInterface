@@ -1,0 +1,13 @@
+﻿## Interface: 11302
+## Title:[聊天]密聊管理
+## Version: 6.0.3
+## Author: Abin
+## X-Category: Chat/Communication
+## SavedVariables: WhisperPopDB
+
+Includes\VirtualScrollList-1.0.lua
+Localization.lua
+WhisperPop.lua
+MainFrame.lua
+MessageFrame.lua
+OptionFrame.lua

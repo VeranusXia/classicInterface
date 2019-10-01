@@ -1,0 +1,9 @@
+## Interface: 11302
+## Title: Masque: |cfff960d9KlixUI|r
+## Version: 1.02
+## Author: Klix
+## Notes: |cfff960d9Klix|r's skin for Masque.
+## Dependencies: Masque
+## OptionalDeps: ElvUI_KlixUI
+
+Masque_KlixUI.lua
