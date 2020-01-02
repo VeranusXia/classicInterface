@@ -56,7 +56,7 @@ function AutoLoot:ShowLootFrame(show)
 		if show then
 			ElvLootFrame:SetParent(ElvLootFrameHolder)
 			ElvLootFrame:SetFrameStrata("HIGH")
-			self:LootUnderMouse(ElvLootFrame, ElvLootFrameHolder)
+			self:LootUnderMouse(ElvLootFrame, ElvLootFrameHolder, 20)
 			self.isHidden = false
 		else
 			ElvLootFrame:SetParent(self)
@@ -65,7 +65,6 @@ function AutoLoot:ShowLootFrame(show)
 	elseif LootFrame:IsEventRegistered("LOOT_SLOT_CLEARED") then
 		LootFrame.page = 1;
 		if show then
-			self:LootUnderMouse(LootFrame, UIParent)
 			LootFrame_Show(LootFrame)
 			self.isHidden = false
 		else
@@ -75,15 +74,18 @@ function AutoLoot:ShowLootFrame(show)
 end
 
 function AutoLoot:LootItems(numItems)
+	local lootThreshold = (self.isClassic and select(2,GetLootMethod()) == 0) and GetLootThreshold() or 10
 	for i = numItems, 1, -1 do
 		local itemLink = GetLootSlotLink(i)
 		local slotType = GetLootSlotType(i)
-		local quantity, _, _, locked, isQuestItem = select(3, GetLootSlotInfo(i))
-		if locked then
-			self.isItemLocked = locked
-		elseif slotType ~= LOOT_SLOT_ITEM or (not self.isClassic and isQuestItem) or self:ProcessLoot(itemLink, quantity) then
-			numItems = numItems - 1
-			LootSlot(i)
+		local quantity, _, quality, locked, isQuestItem = select(3, GetLootSlotInfo(i))
+		if locked or (quality and quality >= lootThreshold) then
+			self.isItemLocked = true
+		else
+			if slotType ~= LOOT_SLOT_ITEM or (not self.isClassic and isQuestItem) or self:ProcessLoot(itemLink, quantity) then
+				numItems = numItems - 1
+				LootSlot(i)
+			end
 		end
 	end
 	if numItems > 0 then
@@ -97,8 +99,7 @@ function AutoLoot:LootItems(numItems)
 end
 
 function AutoLoot:OnEvent(e, ...)
-	if e == "PLAYER_LOGIN" then
-
+    if e == "PLAYER_LOGIN" then
 		if SpeedyAutoLootDB.global.alwaysEnableAutoLoot then
 			SetCVar("autoLootDefault",1)
 		end
@@ -142,14 +143,14 @@ function AutoLoot:PlayInventoryFullSound()
 	end
 end
 
-function AutoLoot:LootUnderMouse(self, parent)
+function AutoLoot:LootUnderMouse(self, parent, yoffset)
 	if GetCVarBool("lootUnderMouse") then
 		local x, y = GetCursorPosition()
 		x = x / self:GetEffectiveScale()
 		y = y / self:GetEffectiveScale()
 
 		self:ClearAllPoints()
-		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x - 40, y + 20)
+		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x - 40, y + (yoffset or 20))
 		self:GetCenter()
 		self:Raise()
 	else
@@ -229,15 +230,16 @@ function AutoLoot:OnLoad()
 	self.isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 
 	if self.isClassic then
-		self:RegisterEvent("LOOT_BIND_CONFIRM")
+        self:RegisterEvent("LOOT_BIND_CONFIRM")
+        self:RegisterEvent("OPEN_MASTER_LOOT_LIST")
 	end
+
+	LootFrame:UnregisterEvent('LOOT_OPENED')
 end
 
 SLASH_SPEEDYAUTOLOOT1, SLASH_SPEEDYAUTOLOOT2, SLASH_SPEEDYAUTOLOOT3  = "/sal", "/speedyloot", "/speedyautoloot"
 SlashCmdList["SPEEDYAUTOLOOT"] = function(...)
     AutoLoot:Help(...)
 end
-
-LootFrame:UnregisterEvent("LOOT_OPENED")
 
 AutoLoot:OnLoad()

@@ -48,7 +48,7 @@ if MODERN then -- mount: mount ID
 			end)
 			clickPrefix = SLASH_CLICK1 .. " " .. bn .. " "
 		end
-		function summonAction(mountID)
+		summonAction = function(mountID)
 			return "attribute", "type","macro", "macrotext",clickPrefix .. mountID
 		end
 	end
@@ -88,7 +88,10 @@ if MODERN then -- mount: mount ID
 		return actionMap[id]
 	end
 	local function describeMount(id)
-		local name, sid, icon = C_MountJournal.GetMountInfoByID(id)
+		local name, sid, icon, _4, _5, _6, _7, factionLocked, factionId = C_MountJournal.GetMountInfoByID(id)
+		if name and factionLocked then
+			name = name .. (factionId == 0 and "|A:QuestPortraitIcon-Horde-small:14:14:0:-1|a" or "|A:QuestPortraitIcon-Alliance-small:15:13:-1:-1|a")
+		end
 		return L"Mount", name, icon, nil, GameTooltip.SetMountBySpellID, sid
 	end
 	AB:RegisterActionType("mount", createMount, describeMount)
@@ -150,19 +153,24 @@ do -- spell: spell ID + mount spell ID
 			return AB:GetActionSlot("mount", action)
 		end
 		
-		local castable, rwCastType = RW:IsSpellCastable(id)
+		local laxRank = not MODERN and optToken ~= "lock-rank" and "lax-rank"
+		local castable, rwCastType = RW:IsSpellCastable(id, nil, laxRank)
 		if not castable then
 			return
-		end
-		if rwCastType == "forced-id-cast" then
+		elseif rwCastType == "forced-id-cast" then
 			action = id
+		elseif rwCastType == "rewire-alias" or rwCastType == "rewire-escape" then
+			return AB:GetActionSlot("macrotext", SLASH_CAST1 .. " " .. GetSpellInfo(id))
 		else
-			local s0, r0 = GetSpellInfo(id), GetSpellSubtext(id)
+			local s0, r0 = GetSpellInfo(id), GetSpellSubtext(id), nil
 			local o, s = pcall(GetSpellInfo, s0, r0)
+			if laxRank and not (o and s) then
+				o, s = pcall(GetSpellInfo, s0)
+			end
 			if not (o and s and s0) then return end
-			local _, r1 = pcall(GetSpellSubtext, s0)
-			if not MODERN and optToken ~= "lock-rank" then
-				r1 = r0
+			local r1, _ = r0
+			if not laxRank then
+				_, r1 = pcall(GetSpellSubtext, s0)
 			end
 			action = (r0 and r1 ~= r0 and FindSpellBookSlotBySpellID(id)) and (s0 .. "(" .. r0 .. ")") or s0
 		end
@@ -321,11 +329,6 @@ do -- macrotext
 	local function canUseViaSCUI(clause)
 		if (tonumber(clause) or 0) > INVSLOT_LAST_EQUIPPED then
 			-- SCUI will pass to UseInventoryItem
-			return false
-		end
-		local iid = tonumber(clause:match("^%s*item:([x%x]+)"))
-		if iid and C_ToyBox.GetToyInfo(iid) then
-			-- Toys aren't matched by item:id syntax in UIBN
 			return false
 		end
 		return true
@@ -878,4 +881,53 @@ if MODERN then -- toybox: item ID
 			end
 		end
 	end)
+end
+
+if MODERN then -- Profession /cast alias: work around incorrectly inferred ranks
+	local activeSet, reserveSet, pendingSync = {}, {}
+	local function procProfession(a, ...)
+		if not a then return end
+		local _, _, _, _, scount, sofs = GetProfessionInfo(a)
+		for i=sofs+1, sofs+scount do
+			local et, eid = GetSpellBookItemInfo(i, "player")
+			if et == "SPELL" and not IsPassiveSpell(eid) then
+				local vid, sn, sr = "spell:" .. eid, GetSpellInfo(eid), GetSpellSubtext(eid)
+				reserveSet[sn], reserveSet[sn .. "()"] = vid, vid
+				if sr and sr ~= "" then
+					reserveSet[sn .. "(" .. sr .. ")"] = vid
+				end
+			end
+		end
+		return procProfession(...)
+	end
+	local function syncProf(e)
+		if InCombatLockdown() then
+			if not pendingSync then
+				EV.PLAYER_REGEN_ENABLED, pendingSync = syncProf, true
+			end
+			return
+		end
+		pendingSync = false
+		wipe(reserveSet)
+		procProfession(GetProfessions())
+		activeSet, reserveSet = reserveSet, activeSet
+		local changed
+		for k in pairs(reserveSet) do
+			if not activeSet[k] then
+				changed = true
+				RW:SetCastAlias(k, nil)
+			end
+		end
+		for k,v in pairs(activeSet) do
+			if v ~= reserveSet[k] then
+				changed = true
+				RW:SetCastAlias(k, v)
+			end
+		end
+		if changed then
+			AB:NotifyObservers("spell")
+		end
+		return e ~= "CHAT_MSG_SKILL" and "remove"
+	end
+	EV.PLAYER_LOGIN, EV.CHAT_MSG_SKILL = syncProf, syncProf
 end

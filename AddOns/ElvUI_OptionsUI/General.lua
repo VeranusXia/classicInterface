@@ -9,6 +9,7 @@ local AFK = E:GetModule('AFK')
 
 local _G = _G
 local IsAddOnLoaded = IsAddOnLoaded
+local IsMouseButtonDown = IsMouseButtonDown
 local FCF_GetNumActiveChatFrames = FCF_GetNumActiveChatFrames
 
 local function GetChatWindowInfo()
@@ -55,7 +56,7 @@ E.Options.args.general = {
 					name = L["Auto Scale"],
 					func = function()
 						E.global.general.UIScale = E:PixelBestSize()
-						E:StaticPopup_Show("UISCALE_CHANGE")
+						E:PixelScaleChanged()
 					end,
 				},
 				UIScale = {
@@ -67,19 +68,13 @@ E.Options.args.general = {
 					get = function(info) return E.global.general.UIScale end,
 					set = function(info, value)
 						E.global.general.UIScale = value
-						E:StaticPopup_Show("UISCALE_CHANGE")
+						if not IsMouseButtonDown() then
+							E:PixelScaleChanged()
+						end
 					end
 				},
-				ignoreScalePopup = {
-					order = 4,
-					type = 'toggle',
-					name = L["Ignore UI Scale Popup"],
-					desc = L["This will prevent the UI Scale Popup from being shown when changing the game window size."],
-					get = function(info) return E.global.general.ignoreScalePopup end,
-					set = function(info, value) E.global.general.ignoreScalePopup = value end
-				},
 				pixelPerfect = {
-					order = 5,
+					order = 4,
 					name = L["Thin Border Theme"],
 					desc = L["The Thin Border Theme option will change the overall apperance of your UI. Using Thin Border Theme is a slight performance increase over the traditional layout."],
 					type = 'toggle',
@@ -87,7 +82,7 @@ E.Options.args.general = {
 					set = function(info, value) E.private.general.pixelPerfect = value; E:StaticPopup_Show("PRIVATE_RL") end
 				},
 				eyefinity = {
-					order = 6,
+					order = 5,
 					name = L["Multi-Monitor Support"],
 					desc = L["Attempt to support eyefinity/nvidia surround."],
 					type = "toggle",
@@ -95,34 +90,34 @@ E.Options.args.general = {
 					set = function(info, value) E.global.general.eyefinity = value; E:StaticPopup_Show("GLOBAL_RL") end
 				},
 				taintLog = {
-					order = 7,
+					order = 6,
 					type = "toggle",
 					name = L["Log Taints"],
 					desc = L["Send ADDON_ACTION_BLOCKED errors to the Lua Error frame. These errors are less important in most cases and will not effect your game performance. Also a lot of these errors cannot be fixed. Please only report these errors if you notice a Defect in gameplay."],
 				},
 				bottomPanel = {
-					order = 8,
+					order = 7,
 					type = 'toggle',
 					name = L["Bottom Panel"],
 					desc = L["Display a panel across the bottom of the screen. This is for cosmetic only."],
 					set = function(info, value) E.db.general.bottomPanel = value; Layout:BottomPanelVisibility() end
 				},
 				topPanel = {
-					order = 9,
+					order = 8,
 					type = 'toggle',
 					name = L["Top Panel"],
 					desc = L["Display a panel across the top of the screen. This is for cosmetic only."],
 					set = function(info, value) E.db.general.topPanel = value; Layout:TopPanelVisibility() end
 				},
 				afk = {
-					order = 10,
+					order = 9,
 					type = 'toggle',
 					name = L["AFK Mode"],
 					desc = L["When you go AFK display the AFK screen."],
 					set = function(info, value) E.db.general.afk = value; AFK:Toggle() end
 				},
 				decimalLength = {
-					order = 11,
+					order = 10,
 					type = "range",
 					name = L["Decimal Length"],
 					desc = L["Controls the amount of decimals used in values displayed on elements like NamePlates and UnitFrames."],
@@ -134,7 +129,7 @@ E.Options.args.general = {
 					end,
 				},
 				numberPrefixStyle = {
-					order = 12,
+					order = 11,
 					type = "select",
 					name = L["Unit Prefix Style"],
 					desc = L["The unit prefixes you want to use when values are shortened in ElvUI. This is mostly used on UnitFrames."],
@@ -152,7 +147,7 @@ E.Options.args.general = {
 					},
 				},
 				smoothingAmount = {
-					order = 13,
+					order = 12,
 					type = "range",
 					isPercent = true,
 					name = L["Smoothing Amount"],
@@ -164,7 +159,7 @@ E.Options.args.general = {
 					end,
 				},
 				locale = {
-					order = 14,
+					order = 13,
 					type = "select",
 					name = L["LANGUAGE"],
 					get = function(info) return E.global.general.locale end,
@@ -182,6 +177,7 @@ E.Options.args.general = {
 						["zhCN"] = "简体中文",
 						["zhTW"] = "正體中文",
 						["koKR"] = "한국어",
+						["itIT"] = "Italiano",
 					},
 				}
 			},
@@ -437,48 +433,6 @@ E.Options.args.general = {
 				},
 			},
 		},
---[=[
-		objectiveFrameGroup = {
-			order = 8,
-			type = "group",
-			name = L["Objective Frame"],
-			get = function(info) return E.db.general[info[#info]] end,
-			args = {
-				objectiveFrameHeader = {
-					order = 30,
-					type = "header",
-					name = L["Objective Frame"],
-				},
-				--objectiveFrameAutoHide = {
-					--order = 31,
-					--type = "toggle",
-					--name = L["Auto Hide"],
-					--desc = L["Automatically hide the objetive frame during boss or arena fights."],
-					--disabled = function() return IsAddOnLoaded("!KalielsTracker") end,
-					--set = function(info, value) E.db.general.objectiveFrameAutoHide = value; Blizzard:SetObjectiveFrameAutoHide(); end,
-				--},
-				objectiveFrameHeight = {
-					order = 32,
-					type = 'range',
-					name = L["Objective Frame Height"],
-					desc = L["Height of the objective tracker. Increase size to be able to see more objectives."],
-					min = 400, max = E.screenheight, step = 1,
-					set = function(info, value) E.db.general.objectiveFrameHeight = value; Blizzard:SetQuestWatchFrameHeight(); end,
-				},
-				--bonusObjectivePosition = {
-					--order = 33,
-					--type = 'select',
-					--name = L["Bonus Reward Position"],
-					--desc = L["Position of bonus quest reward frame relative to the objective tracker."],
-					--values = {
-						--['RIGHT'] = L["Right"],
-						--['LEFT'] = L["Left"],
-						--['AUTO'] = L["Automatic"],
-					--},
-				--},
-			},
-		},
-]=]
 		blizzUIImprovements = {
 			order = 11,
 			type = "group",
@@ -526,6 +480,25 @@ E.Options.args.general = {
 					desc = L["Enables the ElvUI Raid Control panel."],
 					get = function(info) return E.private.general.raidUtility end,
 					set = function(info, value) E.private.general.raidUtility = value; E:StaticPopup_Show("PRIVATE_RL") end
+				},
+				objectiveTracker = {
+					order = 8,
+					type = 'toggle',
+					name = L["ObjectiveTracker Enhancements"],
+				},
+				resurrectSound = {
+					order = 9,
+					type = 'toggle',
+					name = L["Resurrect Sound"],
+					desc = L["Enable to hear sound if you receive a resurrect."],
+				},
+				durabilityScale = {
+					order = 10,
+					type = "range",
+					name = L["Durability Scale"],
+					min = 0.5, max = 8, step = 0.5,
+					get = function(info) return E.db.general.durabilityScale end,
+					set = function(info, value) E.db.general.durabilityScale = value; E:StaticPopup_Show("PRIVATE_RL") end,
 				},
 --[=[
 				itemLevelInfo = {
@@ -594,7 +567,7 @@ E.Options.args.general = {
 			},
 		},
 		misc = {
-			order = 12,
+			order = 20,
 			type = "group",
 			name = L["Miscellaneous"],
 			get = function(info) return E.db.general[info[#info]] end,
@@ -613,6 +586,7 @@ E.Options.args.general = {
 					values = {
 						['NONE'] = L["NONE"],
 						['SAY'] = L["SAY"],
+						['YELL'] = L["YELL"],
 						['PARTY'] = L["Party Only"],
 						['RAID'] = L["Party / Raid"],
 						['RAID_ONLY'] = L["Raid Only"],
@@ -634,7 +608,6 @@ E.Options.args.general = {
 					type = 'select',
 					values = {
 						['NONE'] = L["NONE"],
-						['GUILD'] = L["GUILD"],
 						['PLAYER'] = L["PLAYER"],
 					},
 				},
@@ -651,7 +624,14 @@ E.Options.args.general = {
 					type = 'toggle',
 					disabled = function() return not E.private.general.lootRoll end
 				},
+				questRewardMostValueIcon = {
+					order = 5,
+					type = "toggle",
+					name = L["Mark Quest Reward"],
+					desc = L["Marks the most valuable quest reward with a gold coin."],
+				},
 			},
 		},
 	},
 }
+

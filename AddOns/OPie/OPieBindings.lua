@@ -271,7 +271,9 @@ function frame.localize()
 		(L"Alt+Left Click on a button to set a conditional binding, indicated by %s."):format("|cff4CFF40[+]|r"))
 	lBinding:SetText(L"Binding")
 	btnUnbind:SetText(L"Unbind")
-	UIDropDownMenu_SetText(OBC_Profile, L"Profile" .. ": " .. OneRingLib:GetCurrentProfile())
+	local p = OneRingLib:GetCurrentProfile()
+	p = p == "default" and L"default" or p
+	UIDropDownMenu_SetText(OBC_Profile, L"Profile" .. ": " .. p)
 end
 function frame.refresh()
 	for _, v in pairs(bindingTypes) do

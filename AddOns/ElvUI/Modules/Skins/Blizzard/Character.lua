@@ -18,8 +18,8 @@ local NUM_FACTIONS_DISPLAYED = NUM_FACTIONS_DISPLAYED
 local CHARACTERFRAME_SUBFRAMES = CHARACTERFRAME_SUBFRAMES
 local hooksecurefunc = hooksecurefunc
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.character then return end
+function S:CharacterFrame()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.character) then return end
 
 	-- Character Frame
 	local CharacterFrame = _G.CharacterFrame
@@ -126,7 +126,7 @@ local function LoadSkin()
 	local function updHappiness(self)
 		local happiness = GetPetHappiness()
 		local _, isHunterPet = HasPetUI()
-		if not happiness or not isHunterPet then return end
+		if not (happiness and isHunterPet) then return end
 
 		local texture = self:GetRegions()
 		if happiness == 1 then
@@ -281,11 +281,19 @@ local function LoadSkin()
 	_G.SkillDetailStatusBarUnlearnButton:SetHitRectInsets(0, 0, 0, 0)
 
 	-- Honor Frame
-	_G.HonorFrame:StripTextures()
+	local HonorFrame = _G.HonorFrame
+	S:HandleFrame(HonorFrame, true, nil, 18, -105, -39, 83)
+	HonorFrame.backdrop:SetFrameLevel(HonorFrame:GetFrameLevel())
 
-	_G.HonorFrameProgressButton:CreateBackdrop()
-	_G.HonorFrameProgressBar:SetStatusBarTexture(E.media.normTex)
-	E:RegisterStatusBar(_G.HonorFrameProgressBar)
+	_G.HonorFrameProgressButton:CreateBackdrop('Transparent')
+
+	local HonorFrameProgressBar = _G.HonorFrameProgressBar
+	HonorFrameProgressBar:Width(325)
+	HonorFrameProgressBar:SetStatusBarTexture(E.media.normTex)
+
+	S:HandlePointXY(HonorFrameProgressBar, 19, -74)
+
+	E:RegisterStatusBar(HonorFrameProgressBar)
 end
 
-S:AddCallback('Character', LoadSkin)
+S:AddCallback('CharacterFrame')

@@ -64,3 +64,6 @@ L["UI_RMALL_REMOVE"] = "删除";
 L["UI_CANCEL"] = "取消";
 
 L["UI_MMB_OPEN"] = "打开 " .. _addonName;
+
+L["UI_EDITFORM_TITLE"] = "编辑搜索";
+L["UI_EDITFORM_CONFIRM_BUTTON"] = "确认修改";

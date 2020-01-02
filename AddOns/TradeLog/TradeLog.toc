@@ -1,4 +1,4 @@
-﻿## Interface: 11302
+﻿## Interface: 11303
 ## Title: The Burning Trade
 ## Title-zhCN: The Burning Trade
 ## Notes: |cffbc8f8ftrade log, mage warlock trade assistant.|r

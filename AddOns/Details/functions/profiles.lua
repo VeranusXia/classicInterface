@@ -1272,6 +1272,7 @@ local default_global_data = {
 		realm_sync = true,
 		spell_school_cache = {},
 		global_plugin_database = {},
+		data_sync = false,
 		
 	--> death log
 		show_totalhitdamage_on_overkill = false,
@@ -1312,6 +1313,7 @@ local default_global_data = {
 		
 	--> ilvl
 		item_level_pool = {},
+		disable_talent_feature = false,
 		
 	--> latest report
 		latest_report_table = {},

@@ -8,13 +8,14 @@ local _G = _G
 local ipairs = ipairs
 --WoW API / Variables
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.tooltip then return end
+function S:TooltipFrames()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.tooltip) then return end
 
 	S:HandleCloseButton(_G.ItemRefCloseButton)
 
 	-- Skin Blizzard Tooltips
 	local GameTooltip = _G.GameTooltip
+	local GameTooltipStatusBar = _G.GameTooltipStatusBar
 	GameTooltipStatusBar:SetStatusBarTexture(E.media.normTex)
 	E:RegisterStatusBar(GameTooltipStatusBar)
 	GameTooltipStatusBar:CreateBackdrop('Transparent')
@@ -56,4 +57,4 @@ local function LoadSkin()
 	TT:SecureHookScript(GameTooltip, 'OnUpdate', 'CheckBackdropColor')
 end
 
-S:AddCallback('Skin_Tooltip', LoadSkin)
+S:AddCallback('TooltipFrames')

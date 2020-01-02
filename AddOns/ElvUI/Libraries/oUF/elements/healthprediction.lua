@@ -23,10 +23,8 @@ A default texture will be applied to the Texture widgets if they don't have a te
 
 ## Options
 
-.maxOverflow     - The maximum amount of overflow past the end of the health bar. Set this to 1 to disable the overflow.
-                   Defaults to 1.05 (number)
-.frequentUpdates - Indicates whether to use UNIT_HEALTH_FREQUENT instead of UNIT_HEALTH. Use this if .frequentUpdates is
-                   also set on the Health element (boolean)
+.maxOverflow - The maximum amount of overflow past the end of the health bar. Set this to 1 to disable the overflow.
+               Defaults to 1.05 (number)
 
 ## Examples
 
@@ -55,14 +53,13 @@ A default texture will be applied to the Texture widgets if they don't have a te
         otherBar = otherBar,
         absorbBar = absorbBar,
         maxOverflow = 1.05,
-        frequentUpdates = true,
     }
 --]]
 
 local _, ns = ...
 local oUF = ns.oUF
 local myGUID = UnitGUID('player')
-local HealComm = LibStub("LibClassicHealComm-1.0")
+local HealComm = LibStub("LibHealComm-4.0")
 
 local function Update(self, event, unit)
 	if(self.unit ~= unit) then return end
@@ -81,8 +78,8 @@ local function Update(self, event, unit)
 
 	local guid = UnitGUID(unit)
 
-	local allIncomingHeal = HealComm:GetHealAmount(guid, HealComm.ALL_HEALS) or 0
-	local myIncomingHeal = (HealComm:GetHealAmount(guid, HealComm.ALL_HEALS, nil, myGUID) or 0) * (HealComm:GetHealModifier(myGUID) or 1)
+	local allIncomingHeal = HealComm:GetHealAmount(guid, element.healType) or 0
+	local myIncomingHeal = (HealComm:GetHealAmount(guid, element.healType, nil, myGUID) or 0) * (HealComm:GetHealModifier(myGUID) or 1)
 	local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
 	local otherIncomingHeal = 0
 
@@ -170,6 +167,7 @@ local function Enable(self)
 	if(element) then
 		element.__owner = self
 		element.ForceUpdate = ForceUpdate
+		element.healType = element.healType or HealComm.ALL_HEALS
 
 		self:RegisterEvent('UNIT_HEALTH_FREQUENT', Path)
 		self:RegisterEvent('UNIT_MAXHEALTH', Path)
@@ -272,12 +270,15 @@ local function Disable(self)
 			element.overHealAbsorb:Hide()
 		end
 
-		self:UnregisterEvent('UNIT_HEALTH', Path)
+		HealComm.UnregisterCallback(element, 'HealComm_HealStarted')
+		HealComm.UnregisterCallback(element, 'HealComm_HealUpdated')
+		HealComm.UnregisterCallback(element, 'HealComm_HealDelayed')
+		HealComm.UnregisterCallback(element, 'HealComm_HealStopped')
+		HealComm.UnregisterCallback(element, 'HealComm_ModifierChanged')
+		HealComm.UnregisterCallback(element, 'HealComm_GUIDDisappeared')
+
 		self:UnregisterEvent('UNIT_MAXHEALTH', Path)
 		self:UnregisterEvent('UNIT_HEALTH_FREQUENT', Path)
-		self:UnregisterEvent('UNIT_HEAL_PREDICTION', Path)
-		self:UnregisterEvent('UNIT_ABSORB_AMOUNT_CHANGED', Path)
-		self:UnregisterEvent('UNIT_HEAL_ABSORB_AMOUNT_CHANGED', Path)
 	end
 end
 

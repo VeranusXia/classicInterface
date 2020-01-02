@@ -880,6 +880,9 @@ local function OPC_Profile_NewCallback(self, text, apply, frame)
 	end
 	return true
 end
+local function OPC_Profile_FormatName(ident)
+	return ident == "default" and L"default" or ident
+end
 function OPC_Profile:switch(arg1, frame)
 	config.undo.saveProfile(true)
 	OneRingLib:SwitchProfile(arg1)
@@ -896,7 +899,7 @@ end
 function OPC_Profile:initialize()
 	local info = {func=OPC_Profile.switch, arg2=self:GetParent()}
 	for ident, isActive in OneRingLib.Profiles do
-		info.text, info.arg1, info.checked = ident, ident, isActive or nil
+		info.text, info.arg1, info.checked = OPC_Profile_FormatName(ident), ident, isActive or nil
 		UIDropDownMenu_AddButton(info)
 	end
 	info.text, info.disabled, info.checked, info.notCheckable, info.justifyH = "", true, nil, true, "CENTER"
@@ -922,7 +925,7 @@ function frame.refresh()
 		label = (L"Ring: %s"):format("|cffaaffff" .. (name or key) .."|r")
 	end
 	UIDropDownMenu_SetText(OPC_OptionDomain, label)
-	UIDropDownMenu_SetText(OPC_Profile, L"Profile" .. ": " .. OneRingLib:GetCurrentProfile())
+	UIDropDownMenu_SetText(OPC_Profile, L"Profile" .. ": " .. OPC_Profile_FormatName(OneRingLib:GetCurrentProfile()))
 	for _, set in pairs(OPC_OptionSets) do for j=2,#set do
 		local v, opttype, option = set[j], set[j][1], set[j][2]
 		if opttype == "range" then

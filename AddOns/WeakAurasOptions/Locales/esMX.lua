@@ -47,8 +47,6 @@ local L = WeakAuras.L
 	--[[Translation missing --]]
 	L["|c%02x%02x%02x%02xColor|r"] = "|c%02x%02x%02x%02xColor|r"
 	--[[Translation missing --]]
-	L["|cFFA9A9A9--Please Create an Entry--"] = "|cFFA9A9A9--Please Create an Entry--"
-	--[[Translation missing --]]
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r"] = "|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r"
 	--[[Translation missing --]]
 	L["|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r with offset |cFFFF0000%s/%s|r"] = "|cFFffcc00Anchors:|r Anchored |cFFFF0000%s|r to frame's |cFFFF0000%s|r with offset |cFFFF0000%s/%s|r"
@@ -319,6 +317,8 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	--[[Translation missing --]]
 	L["Disable Import"] = "Disable Import"
 	L["Disabled"] = "Desactivado"
+	--[[Translation missing --]]
+	L["Disallow Entry Reordering"] = "Disallow Entry Reordering"
 	L["Discrete Rotation"] = "Rotación discreta"
 	L["Display"] = "Mostrar"
 	L["Display Icon"] = "Mostrar icono"
@@ -370,6 +370,8 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Entry %i"] = "Entry %i"
 	--[[Translation missing --]]
 	L["Entry limit"] = "Entry limit"
+	--[[Translation missing --]]
+	L["Entry Name Source"] = "Entry Name Source"
 	L["Event"] = "Evento"
 	L["Event Type"] = "Event Type"
 	L["Event(s)"] = "Evento(s)"
@@ -604,6 +606,8 @@ Sólo un valor coincidente puede ser escogido.]=]
 	L["None"] = "Nada"
 	L["Not all children have the same value for this option"] = "No todos los dependientes contienen la misma configuración."
 	L["Not Loaded"] = "Sin cargar"
+	--[[Translation missing --]]
+	L["Note: Automated Messages to SAY and YELL are blocked outside of Instances."] = "Note: Automated Messages to SAY and YELL are blocked outside of Instances."
 	--[[Translation missing --]]
 	L["Number of Entries"] = "Number of Entries"
 	--[[Translation missing --]]

@@ -6,8 +6,8 @@ local S = E:GetModule('Skins')
 local _G = _G
 local select, unpack = select, unpack
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.help then return end
+function S:HelpFrame()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.help) then return end
 
 	local frames = {
 		_G.HelpFrameLeftInset,
@@ -38,8 +38,8 @@ local function LoadSkin()
 	HelpFrameHeader:SetFrameLevel(HelpFrameHeader:GetFrameLevel() + 2)
 	_G.HelpFrameKnowledgebaseErrorFrame:SetFrameLevel(_G.HelpFrameKnowledgebaseErrorFrame:GetFrameLevel() + 2)
 
-	S:HandleFrame(_G.HelpFrameReportBugScrollFrame, true, nil, -4, 4, 6, -4)
-	S:HandleFrame(_G.HelpFrameSubmitSuggestionScrollFrame, true, nil, -4, 4, 6, -4)
+	S:HandleFrame(_G.HelpFrameReportBugScrollFrame, true, 'Default', -4, 4, 6, -4)
+	S:HandleFrame(_G.HelpFrameSubmitSuggestionScrollFrame, true, 'Default', -4, 4, 6, -4)
 
 	for i = 1, _G.HelpFrameReportBug:GetNumChildren() do
 		local child = select(i, _G.HelpFrameReportBug:GetChildren())
@@ -111,6 +111,9 @@ local function LoadSkin()
 	_G.HelpFrameKnowledgebaseSearchBox:Point('TOPLEFT', _G.HelpFrameMainInset, 'TOPLEFT', 13, -10)
 	_G.HelpFrameKnowledgebaseNavBar:StripTextures()
 
+	S:HandleFrame(BrowserSettingsTooltip, true)
+	S:HandleButton(BrowserSettingsTooltip.CookiesButton)
+
 	local HelpFrame = _G.HelpFrame
 	S:HandleFrame(HelpFrame, true)
 
@@ -127,6 +130,8 @@ local function LoadSkin()
 	HelpFrameCharacterStuckHearthstone:SetTemplate(nil, true)
 	HelpFrameCharacterStuckHearthstone.IconTexture:SetInside()
 	HelpFrameCharacterStuckHearthstone.IconTexture:SetTexCoord(unpack(E.TexCoords))
+	HelpFrameCharacterStuckHearthstone:SetHighlightTexture('')
+	HelpFrameCharacterStuckHearthstone.SetHighlightTexture = E.noop
 
 	S:HandleButton(_G.HelpFrameGM_ResponseNeedMoreHelp)
 	S:HandleButton(_G.HelpFrameGM_ResponseCancel)
@@ -138,4 +143,4 @@ local function LoadSkin()
 	end
 end
 
-S:AddCallback('Skin_Help', LoadSkin)
+S:AddCallback('HelpFrame')

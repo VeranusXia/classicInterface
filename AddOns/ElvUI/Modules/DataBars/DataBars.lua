@@ -1,4 +1,4 @@
-local E, L, V, P, G = unpack(select(2, ...)); --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
+local E, L, V, P, G = unpack(select(2, ...)) --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local mod = E:GetModule('DataBars')
 
 --Lua functions
@@ -7,7 +7,7 @@ local _G = _G
 local CreateFrame = CreateFrame
 local GetExpansionLevel = GetExpansionLevel
 local MAX_PLAYER_LEVEL_TABLE = MAX_PLAYER_LEVEL_TABLE
--- GLOBALS: ElvUI_ExperienceBar, ElvUI_ReputationBar, ElvUI_ArtifactBar, ElvUI_HonorBar, ElvUI_AzeriteBar
+-- GLOBALS: ElvUI_ExperienceBar, ElvUI_ReputationBar, ElvUI_HonorBar
 
 function mod:OnLeave()
 	if (self == ElvUI_ExperienceBar and mod.db.experience.mouseover) or (self == ElvUI_ReputationBar and mod.db.reputation.mouseover) or (self == ElvUI_PetExperienceBar and mod.db.petExperience.mouseover) then
@@ -49,7 +49,7 @@ end
 function mod:PLAYER_LEVEL_UP(level)
 	local maxLevel = MAX_PLAYER_LEVEL_TABLE[GetExpansionLevel()]
 	if (level ~= maxLevel or not self.db.experience.hideAtMaxLevel) and self.db.experience.enable then
-		self:UpdateExperience("PLAYER_LEVEL_UP", level)
+		self:UpdateExperience('PLAYER_LEVEL_UP', level)
 	else
 		self.expBar:Hide()
 	end
@@ -63,7 +63,7 @@ function mod:Initialize()
 	self:LoadReputationBar()
 	self:LoadPetExperienceBar()
 
-	self:RegisterEvent("PLAYER_LEVEL_UP")
+	self:RegisterEvent('PLAYER_LEVEL_UP')
 end
 
 E:RegisterModule(mod:GetName())

@@ -1,4 +1,4 @@
-local RW, MAJ, REV, _, T = {}, 1, 15, ...
+local RW, MAJ, REV, _, T = {}, 1, 16, ...
 if T.ActionBook then return end
 local AB, KR = nil, assert(T.Kindred:compatible(1,8), "A compatible version of Kindred is required.")
 local MODERN = select(4,GetBuildInfo()) >= 8e4
@@ -82,7 +82,7 @@ local core, coreEnv = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate"
 		macros, commandInfo, commandHandler, commandAlias = newtable(), newtable(), newtable(), newtable()
 		MACRO_TOKEN, metaCommands, transferTokens = newtable(nil, nil, nil, "MACRO_TOKEN"), newtable(), newtable()
 		metaCommands.mute, metaCommands.unmute, metaCommands.mutenext, metaCommands.parse = 1, 1, 1, 1
-		castEscapes = newtable()
+		castEscapes, castAliases = newtable(), newtable()
 		for _, k in pairs(self:GetChildList(newtable())) do
 			idle[k], numIdle = 1, numIdle + 1
 			k:SetAttribute("type", "macro")
@@ -94,7 +94,12 @@ core:SetAttribute("RunSlashCmd", [=[-- Rewire:Internal_RunSlashCmd
 	local slash, v, target, exArg = ...
 	if not v then
 	elseif slash == "/cast" or slash == "/use" then
-		local oid = v and castEscapes[v:lower()]
+		local vl = v:lower()
+		local ac, av = 0, castAliases[vl]
+		while av and ac < 10 do
+			ac, v, vl = ac + 1, av, av:lower()
+		end
+		local oid = v and castEscapes[vl]
 		local sid = v and not oid and v:match("^%s*spell:(%d+)%s*$")
 		if oid then
 			return AB:RunAttribute("UseAction", oid, target)
@@ -507,7 +512,7 @@ local function init()
 	core:SetFrameRef("ActionBook", AB:seclib())
 	core:Execute([[AB = self:GetFrameRef('ActionBook')]])
 end
-local caEscapeCache, cuHints = {}, {} do
+local caEscapeCache, caAliasCache, cuHints = {}, {}, {} do
 	setmetatable(caEscapeCache, {__index=function(t, k)
 		if k then
 			local v = coreEnv.castEscapes[k:lower()] or false
@@ -515,7 +520,20 @@ local caEscapeCache, cuHints = {}, {} do
 			return v
 		end
 	end})
+	setmetatable(caAliasCache, {__index=function(t, k)
+		if k then
+			local at = coreEnv.castAliases
+			local v = at[k:lower()]
+			repeat
+				local vl = v and v:lower()
+				v = at[vl] or v
+			until not at[vl]
+			t[k] = v
+			return v
+		end
+	end})
 	local function mixHint(slash, _, clause, target, ...)
+		clause = caAliasCache[clause] or clause
 		local ca = caEscapeCache[clause]
 		if ca then
 			return true, AB:GetSlotInfo(ca)
@@ -628,7 +646,25 @@ end
 function RW:GetCastEscapeAction(castArg)
 	return coreEnv.castEscapes[castArg and castArg:lower()]
 end
-function RW:IsSpellCastable(id, disallowRewireEscapes)
+function RW:SetCastAlias(castArg, aliasTo)
+	assert(type(castArg) == "string" and (type(aliasTo) == "string" or aliasTo == nil), 'Syntax: Rewire:SetCastAlias("castAction", "aliasTo" or nil)')
+	assert(not InCombatLockdown(), 'Combat lockdown in effect')
+	if aliasTo == castArg or aliasTo and strcmputf8i(aliasTo, castArg) == 0 then
+		aliasTo = nil
+	elseif aliasTo then
+		local cl, al, at = castArg:lower(), aliasTo:lower(), coreEnv.castAliases
+		while al ~= cl and al and at[al] do
+			al = at[al]:lower()
+		end
+		assert(al ~= cl, 'Aliasing %q creates an alias cycle.', aliasTo)
+	end
+	core:Execute(([[castAliases[%q] = %s]]):format(castArg:lower(), aliasTo and safequote(aliasTo) or "nil"))
+	wipe(caAliasCache)
+end
+function RW:GetCastAlias(castArg)
+	return coreEnv.castEscapes[castArg and castArg:lower()]
+end
+function RW:IsSpellCastable(id, disallowRewireEscapes, laxRank)
 	local cks = Spell_CheckKnown[id]
 	if cks and not cks(id) then
 		return false, "known-check"
@@ -640,6 +676,10 @@ function RW:IsSpellCastable(id, disallowRewireEscapes)
 	local name, rank = GetSpellInfo(id), GetSpellSubtext(id)
 	if disallowRewireEscapes ~= true and coreEnv.castEscapes[name and name:lower()] then
 		return true, "rewire-escape"
+	elseif disallowRewireEscapes ~= true and coreEnv.castAliases[name and name:lower()] then
+		return true, "rewire-alias"
+	elseif laxRank == "lax-rank" then
+		rank = nil
 	end
 	local castable = not not (name and GetSpellInfo(name, rank))
 	return castable, castable and "double-gsi"

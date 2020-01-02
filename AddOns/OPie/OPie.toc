@@ -1,6 +1,6 @@
-## Interface: 11302
+## Interface: 11303
 ## Title: OPie
-## Version: Ancient Walnut 4
+## Version: Ancient Walnut 6
 ## Notes: Group abilities into rings that appear when you hold down a binding.
 ## Notes-deDE: Gruppiere Fähigkeiten in Ringen die erscheinen wenn eine Tastenbelegung ausgelöst wird.
 ## Notes-esES: Agrupar habilitades en anillos que se aparecen al presionar teclados.

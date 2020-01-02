@@ -1,3 +1,5 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("ClassicCodex")
+
 CodexQuest = CreateFrame("Frame")
 
 CodexQuest.queue = {}
@@ -20,8 +22,7 @@ CodexQuest:RegisterEvent("QUEST_GREETING")
 CodexQuest:RegisterEvent("QUEST_REMOVED")
 CodexQuest:RegisterEvent("GOSSIP_SHOW")
 CodexQuest:RegisterEvent("NAME_PLATE_UNIT_ADDED")
--- There is no handler for it. In order to avoid triggering the redrawing operation in the else branch, it is no longer registered.
---CodexQuest:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+CodexQuest:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 CodexQuest:RegisterEvent("ADDON_LOADED")
 CodexQuest:SetScript("OnEvent", function(self, event, ...)
     if event == "ADDON_LOADED" then
@@ -67,13 +68,6 @@ CodexQuest:SetScript("OnEvent", function(self, event, ...)
         -- end
 
     elseif (event == "QUEST_DETAIL") then
-		if not CCTip then
-			CCTip = QuestNpcNameFrame:CreateFontString("CCTip", "ARTWORK", "GameFontHighlight")
-			CCTip:SetWidth(288)
-			CCTip:SetHeight(55)
-			CCTip:SetText("任务助手：打开世界地图(M)\n右上角下拉框可开关任务提示");
-			CCTip:SetPoint("TOPLEFT", QuestFrame, "TOPLEFT", 55, -30);
-		end
         if not CodexConfig.autoAccept or IsControlKeyDown() then
             return
         end
@@ -128,7 +122,14 @@ CodexQuest:SetScript("OnEvent", function(self, event, ...)
 
     elseif (event == "NAME_PLATE_UNIT_ADDED") then
         if CodexConfig.nameplateIcon then
-            CodexQuest:CheckNamePlate()
+            -- arg1: unitID
+            CodexQuest:UpdateNameplate(...)
+        end
+
+    elseif (event == "NAME_PLATE_UNIT_REMOVED") then
+        if CodexConfig.nameplateIcon then
+            -- arg1: unitID
+            CodexQuest:HideNameplate(...)
         end
 
     else
@@ -155,6 +156,7 @@ CodexQuest:SetScript("OnUpdate", function()
 
     if CodexQuest.updateNodes == true then
         CodexMap:UpdateNodes()
+        CodexQuest:UpdateAllNameplates()
         CodexQuest.updateNodes = false
     end
 end)
@@ -192,7 +194,9 @@ function CodexQuest:UpdateQuestLog()
                     local text, _,  done = GetQuestLogLeaderBoard(i, questLogId)
                     -- sometimes you got nil and nil, just like the quest 1149 (Test of Faith)
                     if text then
-                        local _, _, obj, objNum, objNeeded = strfind(text, "(.*)：%s*([%d]+)%s*/%s*([%d]+)")
+                        -- Different languages use different separators in the quest state line,
+                        -- so the regular expression needs to be localized.
+                        local _, _, obj, objNum, objNeeded = strfind(text, L["QUEST_STATE_SPLIT_REGEXP"])
                         if obj then
                             state = state .. i .. (((objNum + 0 >= objNeeded + 0) or done) and "done" or "todo")
                         end
@@ -232,11 +236,13 @@ function CodexQuest:UpdateQuestLog()
     -- process queue
     if CodexConfig.trackingMethod ~= 4  and table.getn(CodexQuest.queue) > 0 then
         for id, entry in pairs(CodexQuest.queue) do
-            if CodexConfig.trackingMethod ~= 3 and (CodexConfig.trackingMethod ~= 2 or IsQuestWatched(entry[3])) then
+            if CodexConfig.trackingMethod ~= 2 or IsQuestWatched(entry[3]) then
                 CodexMap:DeleteNode("CODEX", entry[1])
-                local meta = {["addon"] = "CODEX", ["questLogId"] = entry[3]}
-                for _, id in pairs(entry[2]) do
-                    CodexDatabase:SearchQuestById(id, meta)
+                if CodexConfig.trackingMethod ~= 3 then
+                    local meta = {["addon"] = "CODEX", ["questLogId"] = entry[3]}
+                    for _, id in pairs(entry[2]) do
+                        CodexDatabase:SearchQuestById(id, meta)
+                    end
                 end
                 CodexQuest.updateNodes = true
             end
@@ -265,7 +271,6 @@ function CodexQuest:ShowCurrentQuest()
 
     local maps, meta = {}, {["addon"] = "CODEX", ["questLogId"] = questIndex}
     maps = CodexDatabase:SearchQuestById(questId, meta, maps)
-
     CodexMap:ShowMapId(CodexDatabase:GetBestMap(maps))
 end
 
@@ -291,7 +296,7 @@ function CodexQuest:AddQuestLogIntegration()
     CodexQuest.buttonShow = CodexQuest.buttonShow or CreateFrame("Button", "CodexQuestShow", dockFrame, "UIPanelButtonTemplate")
     CodexQuest.buttonShow:SetWidth(70)
     CodexQuest.buttonShow:SetHeight(20)
-    CodexQuest.buttonShow:SetText("显示")
+    CodexQuest.buttonShow:SetText(L["Show"])
     CodexQuest.buttonShow:SetPoint("TOP", dockTitle, "TOP", -110, 0)
     CodexQuest.buttonShow:SetScript("OnClick", function()
         CodexQuest:ShowCurrentQuest()
@@ -300,7 +305,7 @@ function CodexQuest:AddQuestLogIntegration()
     CodexQuest.buttonHide = CodexQuest.buttonHide or CreateFrame("Button", "CodexQuestHide", dockFrame, "UIPanelButtonTemplate")
     CodexQuest.buttonHide:SetWidth(70)
     CodexQuest.buttonHide:SetHeight(20)
-    CodexQuest.buttonHide:SetText("隐藏")
+    CodexQuest.buttonHide:SetText(L["Hide"])
     CodexQuest.buttonHide:SetPoint("TOP", dockTitle, "TOP", -37, 0)
     CodexQuest.buttonHide:SetScript("OnClick", function()
         CodexQuest:HideCurrentQuest()
@@ -319,7 +324,7 @@ function CodexQuest:AddQuestLogIntegration()
     CodexQuest.buttonReset = CodexQuest.buttonReset or CreateFrame("Button", "CodexQuestReset", dockFrame, "UIPanelButtonTemplate")
     CodexQuest.buttonReset:SetWidth(70)
     CodexQuest.buttonReset:SetHeight(20)
-    CodexQuest.buttonReset:SetText("重置")
+    CodexQuest.buttonReset:SetText(L["Reset"])
     CodexQuest.buttonReset:SetPoint("TOP", dockTitle, "TOP", 37, 0)
     CodexQuest.buttonReset:SetScript("OnClick", function()
         CodexQuest:ResetAll()
@@ -341,7 +346,7 @@ function CodexQuest:AddWorldMapIntegration()
     function CodexQuest.mapButton:updateMenu()
         local function CreateEntries()
             local info = {}
-            info.text = "显示所有任务"
+            info.text = L["All Quests"]
             info.checked = false
             info.func = function(self)
                 UIDropDownMenu_SetSelectedID(CodexQuest.mapButton, self:GetID(), 0)
@@ -351,7 +356,7 @@ function CodexQuest:AddWorldMapIntegration()
             UIDropDownMenu_AddButton(info)
 
             local info = {}
-            info.text = "显示追踪的任务"
+            info.text = L["Tracked Quests"]
             info.checked = false
             info.func = function(self)
                 UIDropDownMenu_SetSelectedID(CodexQuest.mapButton, self:GetID(), 0)
@@ -361,7 +366,7 @@ function CodexQuest:AddWorldMapIntegration()
             UIDropDownMenu_AddButton(info)
 
             local info = {}
-            info.text = "显示手动选择的任务"
+            info.text = L["Manual Selection"]
             info.checked = false
             info.func = function(self)
                 UIDropDownMenu_SetSelectedID(CodexQuest.mapButton, self:GetID(), 0)
@@ -371,7 +376,7 @@ function CodexQuest:AddWorldMapIntegration()
             UIDropDownMenu_AddButton(info)
 
             local info = {}
-            info.text = "不显示任务"
+            info.text = L["Hide Quests"]
             info.checked = false
             info.func = function(self)
                 UIDropDownMenu_SetSelectedID(CodexQuest.mapButton, self:GetID(), 0)
@@ -387,38 +392,71 @@ function CodexQuest:AddWorldMapIntegration()
         UIDropDownMenu_JustifyText(CodexQuest.mapButton, "RIGHT")
         UIDropDownMenu_SetSelectedID(CodexQuest.mapButton, CodexQuest.mapButton.current)
     end
+
+    if CodexConfig.showTrackingMethodDropdown then
+        CodexQuest.mapButton:Show()
+    else
+        CodexQuest.mapButton:Hide()
+    end
 end
 
-function CodexQuest:CheckNamePlate()
-	if IsInInstance() then return end
-    local something = WorldFrame:GetNumChildren()
-    local index = 1
-    local plateList = {}
-    for index = 1, something do
-        local frame = select(index, WorldFrame:GetChildren())
-        if frame:GetName() and frame:GetName():find("NamePlate%d") and not frame.skinned then
-            frame.skinned = 1
-            frame.icon = CreateFrame("Frame", nil, frame)
-            frame.icon:SetFrameStrata("HIGH")
-            frame.icon:SetWidth(25)
-            frame.icon:SetHeight(25)
+function CodexQuest:UpdateNameplate(unitID)
+    local frame = C_NamePlate.GetNamePlateForUnit(unitID)
+    if not frame or frame:IsForbidden() then return end
 
-            local texture = frame.icon:CreateTexture(nil, "HIGH")
-            texture:SetTexture("Interface\\Addons\\ClassicCodex\\img\\pickup.tga")
-            texture:SetAllPoints(frame.icon)
-            frame.icon.texture = texture
-            frame.icon:SetPoint("BOTTOM", frame, "TOP", 0, 0)
+    local name = UnitName(unitID)
+    if not name or not CodexMap.tooltips[name] then return end
+
+    local found = false
+    for title in pairs(CodexQuest.questLog) do
+        if CodexMap.tooltips[name][title] then
+            found = true
+            break
         end
-        if frame["UnitFrame"] and frame["UnitFrame"]["displayedUnit"] then
-            local name = frame["UnitFrame"]["name"]:GetText()
-            frame.icon:Hide()
-            for title in pairs(CodexQuest.questLog) do
-                if name and CodexMap.tooltips[name] and CodexMap.tooltips[name][title] then
-                    frame.icon:Show()
-                    break
-                else
-                    frame.icon:Hide()
-                end
+    end
+
+    if not found then
+        if frame.codexIcon then
+            frame.codexIcon:Hide()
+        end
+        return
+    end
+
+    if not frame.codexIcon then
+        local icon = CreateFrame("Frame", nil, frame)
+        icon:SetFrameStrata("HIGH")
+        icon:SetWidth(25)
+        icon:SetHeight(25)
+        icon:SetPoint("BOTTOM", frame, "TOP", 0, 0)
+
+        local texture = icon:CreateTexture(nil, "HIGH")
+        texture:SetTexture("Interface\\Addons\\ClassicCodex\\img\\pickup.tga")
+        texture:SetAllPoints(icon)
+
+        icon.texture = texture
+        frame.codexIcon = icon
+    end
+
+    frame.codexIcon:Show()
+end
+
+-- When a nameplate is out of range, its frame will be reused later.
+-- If you don't hide the icon, it will appear on the wrong unit.
+function CodexQuest:HideNameplate(unitID)
+    local frame = C_NamePlate.GetNamePlateForUnit(unitID)
+    if not frame or frame:IsForbidden() or not frame.codexIcon then return end
+    frame.codexIcon:Hide()
+end
+
+function CodexQuest:UpdateAllNameplates()
+    for i = 1, 40 do
+        local unitID = "nameplate" .. i
+        -- Notice: nameplate IDs are not continuous, don't use break
+        if UnitExists(unitID) then
+            if CodexConfig.nameplateIcon then
+                CodexQuest:UpdateNameplate(unitID)
+            else
+                CodexQuest:HideNameplate(unitID)
             end
         end
     end
@@ -426,10 +464,7 @@ end
 
 -- [[ Hook UI Functions ]] --
 -- Set certain events on quest watch
-local CodexHookRemoveQuestWatch = RemoveQuestWatch
-RemoveQuestWatch = function(questIndex)
-    local ret = CodexHookRemoveQuestWatch(questIndex)
-
+hooksecurefunc("RemoveQuestWatch", function(questIndex)
     local quests = CodexDB.quests.loc
     local _, _, _, header, _, complete, _, questId = GetQuestLogTitle(questIndex)
     if not header and quests[questId] then
@@ -437,15 +472,9 @@ RemoveQuestWatch = function(questIndex)
         CodexQuest.updateQuestLog = true
         CodexQuest.updateQuestGivers = true
     end
+end)
 
-    return ret
-end
-
-local CodexHookAddQuestWatch = AddQuestWatch
-AddQuestWatch = function(questIndex)
-    local ret = CodexHookAddQuestWatch(questIndex)
+hooksecurefunc("AddQuestWatch", function(questIndex)
     CodexQuest.updateQuestLog = true
     CodexQuest.updateQuestGivers = true
-
-    return re
-end
+end)

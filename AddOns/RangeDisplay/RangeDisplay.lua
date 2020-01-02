@@ -10,7 +10,7 @@ License: Public Domain
 
 local AppName, RangeDisplay = ...
 local OptionsAppName = AppName .. "_Options"
-local VERSION = AppName .. "-v4.9.1"
+local VERSION = AppName .. "-v4.9.2"
 --[===[@debug@
 local VERSION = AppName .. "-r" .. ("$Revision: 392 $"):match("%d+")
 --@end-debug@]===]
@@ -108,7 +108,7 @@ local defaults = {
         enableArena = true,
     },
     profile = {
-        locked = true,
+        locked = false,
         mute = false,
         minimap = {},
         units = {

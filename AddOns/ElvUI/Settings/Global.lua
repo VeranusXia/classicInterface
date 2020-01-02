@@ -3,14 +3,14 @@ local E, L, V, P, G = unpack(select(2, ...)) --Import: Engine, Locales, PrivateD
 --Global Settings
 G.general = {
 	UIScale = 0.64,
-	version = 1.12,
+	version = 1.19,
 	locale = E:GetLocale(),
 	eyefinity = false,
-	ignoreScalePopup = false,
 	smallerWorldMap = true,
 	smallerWorldMapScale = 0.9,
 	fadeMapWhenMoving = true,
-	mapAlphaWhenMoving = 0.35,
+	mapAlphaWhenMoving = 0.2,
+	fadeMapDuration = 0.2,
 	WorldMapCoordinates = {
 		enable = true,
 		position = "BOTTOMLEFT",
@@ -94,7 +94,6 @@ G.profileCopy = {
 		experience = true,
 		reputation = true,
 		honor = true,
-		azerite = true
 	},
 	datatexts = {
 		general = true,

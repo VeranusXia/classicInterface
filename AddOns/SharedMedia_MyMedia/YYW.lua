@@ -8,6 +8,7 @@ local frame = CreateFrame("FRAME", "defaultcvar")
 local function eventHandler(self, event, ...) 
          defaultcvar() 
 end 
+
 --alt点击批量购买
 local savedMerchantItemButton_OnModifiedClick = MerchantItemButton_OnModifiedClick 
 function MerchantItemButton_OnModifiedClick(self, ...) 
@@ -21,3 +22,6 @@ function MerchantItemButton_OnModifiedClick(self, ...)
    end 
    savedMerchantItemButton_OnModifiedClick(self, ...) 
 end
+
+
+

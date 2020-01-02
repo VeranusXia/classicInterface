@@ -12,6 +12,7 @@ local LSM = LibStub("LibSharedMedia-3.0")
 --   FONT
 -- -----
 LSM:Register("font", "ChaoZiSheFengYunJian-2", [[Interface\Addons\SharedMedia_MyMedia\font\ChaoZiSheFengYunJian-2.ttf]], 255) 
+LSM:Register("font", "FX-LED", [[Interface\Addons\SharedMedia_MyMedia\font\FX-LED.TTF]], 255) 
 LSM:Register("font", "OW1", [[Interface\Addons\SharedMedia_MyMedia\font\OW1.ttf]], 255) 
 LSM:Register("font", "OW2", [[Interface\Addons\SharedMedia_MyMedia\font\OW2.ttf]], 255) 
 LSM:Register("font", "YYW", [[Interface\Addons\SharedMedia_MyMedia\font\YYW.ttf]], 255) 

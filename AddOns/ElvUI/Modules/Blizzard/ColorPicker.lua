@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------------
 -- Credit to Jaslm, most of this code is his from the addon ColorPickerPlus.
+-- Modified and optimized by Simpy.
 ------------------------------------------------------------------------------
 local E, L, V, P, G = unpack(select(2, ...)); --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local B = E:GetModule('Blizzard')
@@ -117,6 +118,10 @@ local function onColorSelect(frame, r, g, b)
 
 	_G.ColorSwatch:SetColorTexture(r, g, b)
 	UpdateColorTexts(r, g, b)
+
+	if r == 0 and g == 0 and b == 0 then
+		return
+	end
 
 	if not frame:IsVisible() then
 		delayCall()
@@ -245,7 +250,7 @@ function B:EnhanceColorPicker()
 	b:Point("TOP", "ColorPPCopy", "BOTTOMRIGHT", 0, -7)
 
 	b:SetScript('OnClick', function()
-		local color = E.myclass == 'PRIEST' and E.PriestColors or (_G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS[E.myclass] or _G.RAID_CLASS_COLORS[E.myclass])
+		local color = E:ClassColor(E.myclass, true)
 		_G.ColorPickerFrame:SetColorRGB(color.r, color.g, color.b)
 		_G.ColorSwatch:SetColorTexture(color.r, color.g, color.b)
 		if _G.ColorPickerFrame.hasOpacity then

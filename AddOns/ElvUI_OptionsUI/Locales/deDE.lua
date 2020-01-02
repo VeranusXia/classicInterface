@@ -104,6 +104,7 @@ L["Automatically hide the objetive frame during boss or arena fights."] = "Verst
 L["Automatically repair using the following method when visiting a merchant."] = "Repariere automatisch deine Ausrüstungsgegenstände, wenn du eine der folgenden Methoden auswählst."
 L["Automatically select greed or disenchant (when available) on green quality items. This will only work if you are the max level."] = "Automatisch Gier oder Entzauberung auf Gegenstände von grüner Qualität wählen (sofern verfügbar). Das funktioniert nur, wenn du die maximale Stufe erreicht hast."
 L["Automatically vendor gray items when visiting a vendor."] = "Automatischer Verkauf von grauen Gegenständen bei einem Händlerbesuch."
+L["Available Tags"] = "Verfügbare Tags"
 L["Backdrop color of transparent frames"] = "Hintergrundfarbe von transparenten Fenstern"
 L["Backdrop Color"] = "Hintergrundfarbe"
 L["Backdrop Faded Color"] = "Transparente Hintergrundfarbe"
@@ -269,7 +270,6 @@ L["Comparison Font Size"] = "Vergleich Schriftgröße"
 L["Completely hide the voice buttons."] = "Blendet die Sprachtasten komplett aus."
 L["Condensed"] = "Gekürzt"
 L["Configure Auras"] = "Konfiguriere Auren"
-L["Contribution"] = "Beitragsfenster"
 L["Control enemy nameplates toggling on or off when in combat."] = "Legt fest ob die Namensplaketten im Kampf für Gegner ein- oder ausgeblendet werden."
 L["Control friendly nameplates toggling on or off when in combat."] = "Legt fest ob die Namensplaketten im Kampf für freundliche Einheiten ein- oder ausgeblendet werden."
 L["Controls how big of an area on the screen will accept clicks to target unit."] = "Legt die Größe des Bereichs auf dem Bildschirm fest, welche die klicks durch die feindlichen Einheiten erlaubt."
@@ -417,6 +417,7 @@ L["Elite Icon"] = "Elite Symbol"
 L["ELVUI_CREDITS"] = "Ich möchte mich hier bei folgenden Personen bedanken, die durch ihre tatkräftige Unterstützung beim Testen und Coden, sowie durch Spenden, sehr geholfen haben. Bitte beachten: Für Spenden poste ich nur die Namen, die mich im Forum via PM angeschrieben haben. Sollte dein Name fehlen und du möchtest deinen Namen hinzugefügt haben, schreib mir bitte eine PM im Forum."
 L["Emotion Icons"] = "Emoticons"
 L["Enable + Adjust Movers"] = "Aktiveren + Anpassen der Anker"
+L["Enable a sound if you select a unit."] = "Aktiviert ein Geräusch wenn du eine Einheit auswählst."
 L["Enable Custom Color"] = "Benutzerdefinierte Farbe aktivieren"
 L["Enable the use of separate size options for the right chat panel."] = "Benutze getrennte Größenoptionen für das rechte Chatfenster."
 L["Enable"] = "Eingeschaltet"
@@ -521,6 +522,7 @@ L["Growth Direction"] = "Wachstumsrichtung"
 L["Growth X-Direction"] = "Wachstum X-Richtung"
 L["Growth Y-Direction"] = "Wachstum Y-Richtung"
 L["Guardians"] = "Wächter"
+L["Guide:"] = true --No need to translate
 L["Guild Control Frame"] = "Gildenkontrollfenster"
 L["Guild Ranks"] = "Gildenränge"
 L["Guild Registrar"] = "Gildenregister"
@@ -546,6 +548,7 @@ L["HH:MM Threshold"] = "HH:MM Schwellenwert"
 L["Hide At Max Level"] = "Auf max. Level vestecken"
 L["Hide Below Max Level"] = "Verstecke unter Max Level"
 L["Hide Both"] = "Verstecke Beide"
+L["Hide Castbar text. Useful if your power height is very low or if you use power offset."] = "Versteckt den Zauberleisten Text. Nützlich wenn deine Kraft Höhe sehr niedrig ist oder wenn du den Kraft Versatz benutzt."
 L["Hide Cooldown Bling"] = "Versteckt das Abklingzeitsleuchten"
 L["Hide Delay"] = "Versteckungsverzögerung"
 L["Hide Error Text"] = "Fehlertext verstecken"
@@ -555,6 +558,7 @@ L["Hide In Vehicle"] = "Im Fahrzeug verstecken"
 L["Hide Outside PvP"] = "Verstecke ausserhalb von PvP"
 L["Hide specific sections in the datatext tooltip."] = "Verstecke spezifische Abschnitte im Infotext Tooltip."
 L["Hide Spell Name"] = "Verstecke Zaubername"
+L["Hide Text"] = "Verstecke Text"
 L["Hide Time"] = "Verstecke Zeit"
 L["Hide tooltip while in combat."] = "Verstecke den Tooltip während des Kampfes."
 L["Hide Voice Buttons"] = "Verstecke Sprachtasten"
@@ -634,7 +638,6 @@ L["If you have an icon or aurabar that you don't want to display simply hold dow
 L["If you have any plugins supporting this feature installed you can find them in the selection dropdown to the right."] = "Wenn du ein Plugin installiert hast, was diese Einstellungen unterstützt, findest du sie im Dropdown rechts."
 L["If you unlock actionbars then trying to move a spell might instantly cast it if you cast spells on key press instead of key release."] = "Wenn du die Aktionsleisten entsperrst und versuchst einen Zauber zu verschieben, wird voraussichtlich der Zauber ausgelöst beim drücken anstatt beim loslassen der Taste."
 L["Ignore mouse events."] = "Ignoriere Maus Events."
-L["Ignore UI Scale Popup"] = "Ignoriere UI Skalierungs-Popup"
 L["Ignored Items and Search Syntax (Global)"] = "Ignorierte Gegenstände oder Suchoperatoren (Global)"
 L["Ignored Items and Search Syntax (Profile)"] = "Ignorierte Gegenstände oder Suchoperatoren (Profil)"
 L["Import Now"] = "Jetzt importieren"
@@ -722,6 +725,8 @@ L["Make the unitframe glow yellow when it is below this percent of health, it wi
 L["Make the world map smaller."] = "Macht die Weltkarte kleiner."
 L["Map Opacity When Moving"] = "Deckkraft der Karte während der Bewegung"
 L["Maps"] = "Karten"
+L["Mark Quest Reward"] = true
+L["Marks the most valuable quest reward with a gold coin."] = true
 L["Masque Support"] = "Masque Unterstützung"
 L["Match Frame Width"] = "Passende Fensterbreite"
 L["Match if Name or NPC ID is NOT in the list."] = "Löst aus, wenn Name oder NPC ID NICHT in der Liste ist."
@@ -1139,6 +1144,7 @@ L["Target On Mouse-Down"] = "Ziel bei Maus-Runter"
 L["Target units on mouse down rather than mouse up. \n\n|cffFF0000Warning: If you are using the addon 'Clique' you may have to adjust your clique settings when changing this."] = "Nimmt die Einheit ins Ziel bei Maus-Runter anstatt bei Maus-Hoch. |cffFF0000Warnung: Wenn du das Addon 'Clique' benutzt musst du das auch in den Clique Einstellungen ändern wenn du das hier benutzt."
 L["Target"] = "Ziel"
 L["Target, Quest, Combat"] = "Ziel, Quest, Kampf"
+L["Targeting Sound"] = "Auswahl Geräusch" -- Bad Translation
 L["Target/Low Health Indicator"] = "Ziel-/Geringer Leben Indikator"
 L["Targeted Glow"] = "Anvisiert Leuchten"
 L["Targeting"] = "Zielauswahl"
@@ -1148,11 +1154,9 @@ L["Testing:"] = "Tester:"
 L["Text Color"] = "Text Farbe"
 L["Text Font Size"] = "Text Schriftgröße"
 L["Text Format"] = "Textformat"
-L["Text Position"] = "Text Position"
+L["Text Options"] = "Text Optionen"
 L["Text Threshold"] = "Text Schwelle"
 L["Text Toggle On NPC"] = "Textumschalter auf NPCs"
-L["Text xOffset"] = "Text X-Versatz"
-L["Text yOffset"] = "Text Y-Versatz"
 L["Text"] = "Text"
 L["Texture"] = "Textur"
 L["Textured Icon"] = "Texturiertes Symbol"
@@ -1207,7 +1211,6 @@ L["This setting will be updated upon changing stances."] = "Diese Einstellungen 
 L["This texture will get used on objects like chat windows and dropdown menus."] = "Diese Textur wird für Objekte wie Chatfenster und Dropdown-Menüs benutzt."
 L["This will override the global cooldown settings."] = "Dieses überschreibt die globale Abklingzeiteinstellung."
 L["This will pin the voice buttons to the chat's tab panel. Unchecking it will create a voice button panel with a mover."] = "Dieses heftet die Sprachtasten zur Chat Tableiste. Deaktiveren erzeugt eine bewegbare Sprachtastenleiste."
-L["This will prevent the UI Scale Popup from being shown when changing the game window size."] = "Dieses verhindert dass das UI Skalierungs-Popup erscheint, wenn man die Spiel Fenstergröße ändert."
 L["This will reset the contents of this filter back to default. Any spell you have added to this filter will be removed."] = "Dieses wird den Inhalt des Filters auf Standard zurücksetzen. Jeder Zauber den du zum Filter hinzugefügt hast wird gelöscht."
 L["This works like a macro, you can run different situations to get the actionbar to show/hide differently.\n Example: '[combat] show;hide'"] = "Dieses funktioniert wie ein Makro, du kannst verschiedene Situationen verwenden um die Aktionsleiste zu zeigen/verstecken.\n Beispiel: '[combat] show;hide'"
 L["Threat Display Mode"] = "Bedrohungs Anzeige Modus"
@@ -1219,8 +1222,11 @@ L["Threshold (in seconds) before text is shown in the MM:SS format. Set to -1 to
 L["Threshold before text goes into decimal form. Set to -1 to disable decimals."] = "Schwellenwert bevor der Text in die Dezimalform wechselt. Auf -1 setzen, um Dezimalstellen zu deaktivieren."
 L["Threshold before text turns red and is in decimal form. Set to -1 for it to never turn red"] = "CD-Schwelle bevor der Text rot wird. Setze diesen Wert auf -1, wenn er nie rot werden soll"
 L["Threshold before the icon will fade out and back in. Set to -1 to disable."] = "Schwelle bevor das Symbol ausblendend und wieder einblendet. Setze auf -1 um zu deaktivieren."
+L["Threshold Colors"] = "Schwellenwert Farben"
 L["Ticks"] = "Ticks"
 L["Tiers"] = true --No need to translate
+L["Time Indicator Colors"] = "Zeit Indikator Farben"
+L["Time Options"] = "Zeit Optionen"
 L["Time Remaining Reverse"] = "Zeit verbleibend umkehren"
 L["Time Remaining"] = "Zeit verbleibend"
 L["Time To Hold"] = "Anzeigezeit"
@@ -1290,6 +1296,11 @@ L["Use Dead Backdrop"] = "Benutze Hintergrundfarbe vom Tod"
 L["Use Default"] = "Benutze Standard"
 L["Use drag and drop to rearrange filter priority or right click to remove a filter."] = "Benutze Drag und Drop um die Filter Priorität zu arrangieren oder rechts klick um einen Filter zu entfernen."
 L["Use Health Texture on Background"] = "Benutze Gesundheitstextur auf dem Hintergrund"
+L["Use Indicator Color"] = "Benutze Indikator Farbe"
+L["Use Instance ID or Name"] = "Benutze Instanz ID oder Name"
+L["Use Map ID or Name"] = "Benutze Map ID oder Name"
+L["Use Subzone Names"] = "Benutze Unterzonen Namen"
+L["Use Zone Names"] = "Benutze Zonennamen"
 L["Use Portrait"] = "Benutze Portrait"
 L["Use Position Override"] = "Benutze Überschreibung der Position"
 L["Use Real ID BattleTag"] = "Benutze Real ID BattleTag"
@@ -1338,9 +1349,7 @@ L["Word Wrap"] = "Zeilenumbruch"
 L["World Map Coordinates"] = "Weltkarten Koordinaten"
 L["Wrap After"] = "Neue Reihe/Spalte beginnen"
 L["X-Offset"] = "X-Versatz"
-L["xOffset"] = "X-Versatz"
 L["Y-Offset"] = "Y-Versatz"
-L["yOffset"] = "Y-Versatz"
 L["You are going to copy settings for |cffD3CF00\"%s\"|r from your current |cff4beb2c\"%s\"|r profile to |cff4beb2c\"%s\"|r profile. Are you sure?"] = "Du möchtest Einstellungen für |cffD3CF00\"%s\"|r von deinem derzeitigen |cff4beb2c\"%s\"|r Profil zu |cff4beb2c\"%s\"|r Profil kopieren. Bist du sicher?"
 L["You are going to copy settings for |cffD3CF00\"%s\"|r from |cff4beb2c\"%s\"|r profile to your current |cff4beb2c\"%s\"|r profile. Are you sure?"] = "Du möchtest Einstellungen für |cffD3CF00\"%s\"|r Profil zu deinem aktuellem |cff4beb2c\"%s\"|r Profil kopieren. Bist du sicher?"
 L["You cannot copy settings from the same unit."] = "Du kannst keine Einstellungen von der gleichen Einheit kopieren."
@@ -1353,20 +1362,20 @@ L["Your Auras First"] = "Deine Auren zuerst"
 L["Zone Ability"] = "Zonen Fähigkeit"
 
 ----------------------------------
-L['blockCastByPlayers'] = "[Blocke] Gezaubert von Spieler"
-L['blockDispellable'] = "[Blocke] Bannbar"
-L['blockNoDuration'] = "[Blocke] Keine Dauer"
-L['blockNonPersonal'] = "[Blocke] Nicht Persönlich"
-L['blockNotDispellable'] = "[Blocke] Nicht Bannbar"
-L['Boss'] = true --No need to translate
-L['CastByNPC'] = "Gezaubert von NPC"
-L['CastByPlayers'] = "Gezaubert von Spieler"
-L['CastByUnit'] = "Gezaubert von Einheit"
-L['Dispellable'] = "Bannbar"
-L['nonPersonal'] = "Nicht Persönlich"
-L['notCastByUnit'] = "Nicht gezaubert von der Einheit"
-L['notDispellable'] = "Nicht Bannbar"
-L['Personal'] = "Persönlich"
+L["blockCastByPlayers"] = "[Blocke] Gezaubert von Spieler"
+L["blockDispellable"] = "[Blocke] Bannbar"
+L["blockNoDuration"] = "[Blocke] Keine Dauer"
+L["blockNonPersonal"] = "[Blocke] Nicht Persönlich"
+L["blockNotDispellable"] = "[Blocke] Nicht Bannbar"
+L["Boss"] = true --No need to translate
+L["CastByNPC"] = "Gezaubert von NPC"
+L["CastByPlayers"] = "Gezaubert von Spieler"
+L["CastByUnit"] = "Gezaubert von Einheit"
+L["Dispellable"] = "Bannbar"
+L["nonPersonal"] = "Nicht Persönlich"
+L["notCastByUnit"] = "Nicht gezaubert von der Einheit"
+L["notDispellable"] = "Nicht Bannbar"
+L["Personal"] = "Persönlich"
 ----------------------------------
 
 L["ACTIONBARS_DESC"] = "Konfiguriere die Einstellungen für die Aktionsleisten."
@@ -1412,28 +1421,6 @@ Die folgenden Suchbegriffe können auch benutzt werden:
     • followers : Anhänger Gegenstände.
     • champions : Champion equipment.]=]
 
-L["TEXT_FORMAT_DESC"] = [=[Wähle eine Zeichenfolge um das Textformat zu ändern.
-
-Beispiele:
-[namecolor][name] [difficultycolor][smartlevel] [shortclassification]
-[healthcolor][health:current-max]
-[powercolor][power:current]
-
-Leben / Kraft Formate:
-'current' - Aktueller Wert
-'percent' - Prozentualer Wert
-'current-max' - Aktueller Wert gefolgt von dem maximalen Wert. Es wird nur der Maximale Wert anzeigt, wenn der aktuelle Wert auch das Maximum ist
-'current-percent' - Aktueller Wert gefolgt von dem prozentualen Wert. Es wird nur der maximale Wert angezeigt, wenn der aktuelle Wert auch das Maximum ist
-'current-max-percent' - Aktueller Wert, Maximaler Wert, gefolgt von dem prozentualen Wert. Es wird nur der maximale Wert angezeigt, wenn der aktuelle Wert auch das Maximum ist
-'deficit' - Zeigt das Defizit. Es wird nichts angezeigt, wenn kein Defizit vorhanden ist
-
-Namensformate:
-'name:short' - Name auf 10 Zeichen beschränkt
-'name:medium' - Name auf 15 Zeichen beschränkt
-'name:long' - Name auf 20 Zeichen beschränkt
-
-Zum Deaktvieren lasse das Feld leer. Brauchst du mehr Informationen besuche http://www.tukui.org]=]
-
 L[ [=[This works like a macro, you can run different situations to get the actionbar to page differently.
  Example: '[combat] 2;']=] ] = [=[Dieses funktioniert wie ein Makro, du kannst verschiedene Situationen haben um die Aktionsleiste zu wechseln.
  Beispiel: '[combat] 2;']=]
@@ -1470,7 +1457,6 @@ L["ALL"] = "Alle";
 L["ALT_KEY_TEXT"] = "ALT";
 L["ARENA"] = "Arena";
 L["AUCTIONS"] = "Auktionen";
-L["AZERITE_RESPEC_TITLE"] = "Azeritumschmieder";
 L["BAGSLOT"] = "Tasche";
 L["BAG_FILTER_CONSUMABLES"] = "Verbrauchbare Gegenstände";
 L["BAG_FILTER_EQUIPMENT"] = "Ausrüstung";
@@ -1545,7 +1531,6 @@ L["INTERFACE_OPTIONS"] = "Interface-Optionen";
 L["ISLANDS_HEADER"] = "Inselexpeditionen";
 L["ITEM_BIND_QUEST"] = "Questgegenstand";
 L["ITEM_QUALITY3_DESC"] = "Selten";
-L["ITEM_QUALITY6_DESC"] = "Artefakt";
 L["ITEMS"] = "Gegenstände";
 L["KEY_BINDINGS"] = "Tastaturbelegung";
 L["LANGUAGE"] = "Sprache";

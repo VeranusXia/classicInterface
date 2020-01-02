@@ -6,7 +6,7 @@ local LSM = E.Libs.LSM
 --Lua functions
 local _G = _G
 local gsub, strfind, gmatch, format = gsub, strfind, gmatch, format
-local ipairs, wipe, time, difftime = ipairs, wipe, time, difftime
+local ipairs, sort, wipe, time, difftime = ipairs, sort, wipe, time, difftime
 local pairs, unpack, select, tostring, pcall, next, tonumber, type = pairs, unpack, select, tostring, pcall, next, tonumber, type
 local strlower, strsub, strlen, strupper, strtrim, strmatch = strlower, strsub, strlen, strupper, strtrim, strmatch
 local tinsert, tremove, tconcat = tinsert, tremove, table.concat
@@ -30,6 +30,7 @@ local ChatEdit_SetLastTellTarget = ChatEdit_SetLastTellTarget
 local ChatFrame_CanChatGroupPerformExpressionExpansion = ChatFrame_CanChatGroupPerformExpressionExpansion
 local ChatFrame_ConfigEventHandler = ChatFrame_ConfigEventHandler
 local ChatFrame_GetMobileEmbeddedTexture = ChatFrame_GetMobileEmbeddedTexture
+local ChatFrame_ResolvePrefixedChannelName = ChatFrame_ResolvePrefixedChannelName
 local ChatFrame_SendTell = ChatFrame_SendTell
 local ChatFrame_SystemEventHandler = ChatFrame_SystemEventHandler
 local ChatHistory_GetAccessID = ChatHistory_GetAccessID
@@ -45,6 +46,7 @@ local FCFManager_ShouldSuppressMessageFlash = FCFManager_ShouldSuppressMessageFl
 local FCFTab_UpdateAlpha = FCFTab_UpdateAlpha
 local FlashClientIcon = FlashClientIcon
 local FloatingChatFrame_OnEvent = FloatingChatFrame_OnEvent
+local GetBNPlayerCommunityLink = GetBNPlayerCommunityLink
 local GetBNPlayerLink = GetBNPlayerLink
 local GetChannelName = GetChannelName
 local GetCursorPosition = GetCursorPosition
@@ -53,6 +55,7 @@ local GetGuildRosterMOTD = GetGuildRosterMOTD
 local GetInstanceInfo = GetInstanceInfo
 local GetMouseFocus = GetMouseFocus
 local GetNumGroupMembers = GetNumGroupMembers
+local GetPlayerCommunityLink = GetPlayerCommunityLink
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 local GetPlayerLink = GetPlayerLink
 local GetRaidRosterInfo = GetRaidRosterInfo
@@ -70,27 +73,24 @@ local PlaySoundFile = PlaySoundFile
 local RemoveExtraSpaces = RemoveExtraSpaces
 local RemoveNewlines = RemoveNewlines
 local ScrollFrameTemplate_OnMouseWheel = ScrollFrameTemplate_OnMouseWheel
-local ShowUIPanel, HideUIPanel = ShowUIPanel, HideUIPanel
 local StaticPopup_Visible = StaticPopup_Visible
 local ToggleFrame = ToggleFrame
 local ToggleQuickJoinPanel = ToggleQuickJoinPanel
 local UnitName = UnitName
 local UnitRealmRelationship = UnitRealmRelationship
 
-local BNET_CLIENT_WOW = BNET_CLIENT_WOW
 local C_Club_GetInfoFromLastCommunityChatLine = C_Club.GetInfoFromLastCommunityChatLine
-local ChatFrame_ResolvePrefixedChannelName = ChatFrame_ResolvePrefixedChannelName
-local GetBNPlayerCommunityLink = GetBNPlayerCommunityLink
-local GetPlayerCommunityLink = GetPlayerCommunityLink
+local SOUNDKIT_TELL_MESSAGE = SOUNDKIT.TELL_MESSAGE
+
 local LE_REALM_RELATION_SAME = LE_REALM_RELATION_SAME
 local NUM_CHAT_WINDOWS = NUM_CHAT_WINDOWS
-local SOUNDKIT = SOUNDKIT
+local BNET_CLIENT_WOW = BNET_CLIENT_WOW
 
 -- GLOBALS: ElvCharacterDB
 
-local msgList, msgCount, msgTime = {}, {}, {}
 local CreatedFrames = 0
 local lfgRoles = {}
+local throttle = {}
 
 local PLAYER_REALM = gsub(E.myrealm,'[%s%-]','')
 local PLAYER_NAME = E.myname.."-"..PLAYER_REALM
@@ -107,15 +107,18 @@ local DEFAULT_STRINGS = {
 }
 
 local hyperlinkTypes = {
-	['item'] = true,
-	['spell'] = true,
-	['unit'] = true,
-	['quest'] = true,
+	['achievement'] = true,
+	['apower'] = true,
+	['currency'] = true,
 	['enchant'] = true,
-	['instancelock'] = true,
-	['talent'] = true,
 	['glyph'] = true,
-	["currency"] = true,
+	['instancelock'] = true,
+	['item'] = true,
+	['keystone'] = true,
+	['quest'] = true,
+	['spell'] = true,
+	['talent'] = true,
+	['unit'] = true
 }
 
 local tabTexs = {
@@ -145,7 +148,7 @@ function CH:AddSmiley(key, texture)
 	end
 end
 
-local specialChatIcons
+local specialChatIcons, itsSimpy, SimpysText
 do --this can save some main file locals
 	local x, y = ':16:16',':13:25'
 	--local ElvMelon		= E:TextureString(E.Media.ChatLogos.ElvMelon,y)
@@ -161,13 +164,32 @@ do --this can save some main file locals
 	--local MrHankey		= E:TextureString(E.Media.ChatLogos.MrHankey,x)
 	--local Rainbow		= E:TextureString(E.Media.ChatLogos.Rainbow,x)
 
-	local a, b, c = 0, false, {ElvRed, ElvOrange, ElvYellow, ElvGreen, ElvBlue, ElvPurple, ElvPink}
-	local itsSimpy = function() a = a - (b and 1 or -1) if (b and a == 1 or a == 0) or a == #c then b = not b end return c[a] end
+	do	-- simpy chaos:
+		--- new icon color every message, in order then reversed back, repeatedly
+		local a, b, c = 0, false, {ElvRed, ElvOrange, ElvYellow, ElvGreen, ElvBlue, ElvPurple, ElvPink}
+		itsSimpy = function() a = a - (b and 1 or -1) if (b and a == 1 or a == 0) or a == #c then b = not b end return c[a] end
+
+		--- gradient text, ignoring hyperlinks and keywords
+		local e, f, g = {'|%x+|H.-|h.-|h|r', '|H.-|h.-|h', '|T.-|t', '|c.-|r'}, {}, {}
+		local gradient = function(t) return gsub(gsub(E:TextGradient(gsub(gsub(t,'%%%%','\27'),'\124\124','\26'), 0.31,0.85,0.82, 0.33,0.89,0.50, 0.84,0.85,0.20, 0.87,0.64,0.33, 0.93,0.53,0.47, 0.97,0.44,0.81, 0.72,0.33,0.87, 0.31,0.85,0.82),'\27','%%%%'),'\26','||') end
+		local protect = function(t, u, v) local w = E:EscapeString(v) local r, s = strfind(u, w) while f[r] do r, s = strfind(u, w, s) end tinsert(g, r) f[r] = w return gsub(t, w, '\24') end
+		SimpysText = function(t) local u = t
+			for _, w in ipairs(e) do for k in gmatch(t, w) do t = protect(t, u, k) end end
+			t = gradient(t) --Light Spring: '50dad3','56e580','d8da33','dfa455','ee8879','f972d1','b855df','50dad3'
+			if next(g) then if #g > 1 then sort(g) end for n in gmatch(t, '\24') do local _, v = next(g) t = gsub(t, n, f[v], 1) tremove(g, 1) f[v] = nil end end
+			return t
+		end
+	end
 
 	specialChatIcons = {
 		-- Simpy
 		["Simpy-Myzrael"]		= itsSimpy, -- Warlock
 		["Cutepally-Myzrael"]	= itsSimpy, -- Paladin
+		["Imsocheesy-Myzrael"]	= itsSimpy, -- [Horde] Priest
+		["Imsospicy-Myzrael"]	= itsSimpy, -- [Horde] Mage
+		-- Blazeflack
+		["Freezly-MirageRaceway"]	= ElvBlue, -- Mage
+		["Blazii-MirageRaceway"]	= ElvBlue, -- Priest
 	}
 end
 
@@ -353,6 +375,7 @@ function CH:StyleChat(frame)
 				ChatEdit_ParseText(editBox, 0)
 			end
 		end
+
 		editbox.characterCount:SetText((255 - strlen(text)))
 	end
 
@@ -420,12 +443,6 @@ function CH:StyleChat(frame)
 
 	for _, text in pairs(ElvCharacterDB.ChatEditHistory) do
 		editbox:AddHistoryLine(text)
-	end
-
-	if id ~= 2 then --Don't add timestamps to combat log, they don't work.
-		--This usually taints, but LibChatAnims should make sure it doesn't.
-		frame.OldAddMessage = frame.AddMessage
-		frame.AddMessage = CH.AddMessage
 	end
 
 	--copy chat button
@@ -710,7 +727,7 @@ function CH:PositionChat(override)
 		local id = chat:GetID()
 		local tab = _G[format("ChatFrame%sTab", i)]
 		local isDocked = chat.isDocked
-		tab.isDocked = chat.isDocked
+		tab.isDocked = isDocked
 		tab.owner = chat
 
 		if id > NUM_CHAT_WINDOWS then
@@ -942,33 +959,26 @@ function CH:OnHyperlinkEnter(frame, refString)
 	if InCombatLockdown() then return; end
 	local linkToken = strmatch(refString, "^([^:]+)")
 	if hyperlinkTypes[linkToken] then
-		ShowUIPanel(_G.GameTooltip)
 		_G.GameTooltip:SetOwner(frame, "ANCHOR_CURSOR")
 		_G.GameTooltip:SetHyperlink(refString)
-		hyperLinkEntered = frame
 		_G.GameTooltip:Show()
+		hyperLinkEntered = frame
 	end
 end
 
-function CH:OnHyperlinkLeave() -- frame, refString
-	-- local linkToken = refString:match("^([^:]+)")
-	-- if hyperlinkTypes[linkToken] then
-		-- HideUIPanel(GameTooltip)
-		-- hyperLinkEntered = nil
-	-- end
-
+function CH:OnHyperlinkLeave()
 	if hyperLinkEntered then
-		HideUIPanel(_G.GameTooltip)
 		hyperLinkEntered = nil
+		_G.GameTooltip:Hide()
 	end
 end
 
--- function CH:OnMessageScrollChanged(frame)
-	-- if hyperLinkEntered == frame then
-		-- HideUIPanel(GameTooltip)
-		-- hyperLinkEntered = false
-	-- end
--- end
+function CH:OnMouseWheel(frame)
+	if hyperLinkEntered == frame then
+		hyperLinkEntered = false
+		_G.GameTooltip:Hide()
+	end
+end
 
 function CH:EnableHyperlink()
 	for _, frameName in pairs(_G.CHAT_FRAMES) do
@@ -976,7 +986,7 @@ function CH:EnableHyperlink()
 		if (not self.hooks or not self.hooks[frame] or not self.hooks[frame].OnHyperlinkEnter) then
 			self:HookScript(frame, 'OnHyperlinkEnter')
 			self:HookScript(frame, 'OnHyperlinkLeave')
-			-- self:HookScript(frame, 'OnMessageScrollChanged')
+			self:HookScript(frame, 'OnMouseWheel')
 		end
 	end
 end
@@ -987,15 +997,13 @@ function CH:DisableHyperlink()
 		if self.hooks and self.hooks[frame] and self.hooks[frame].OnHyperlinkEnter then
 			self:Unhook(frame, 'OnHyperlinkEnter')
 			self:Unhook(frame, 'OnHyperlinkLeave')
-			-- self:Unhook(frame, 'OnMessageScrollChanged')
+			self:Unhook(frame, 'OnMouseWheel')
 		end
 	end
 end
 
 function CH:DisableChatThrottle()
-	wipe(msgList)
-	wipe(msgCount)
-	wipe(msgTime)
+	wipe(throttle)
 end
 
 function CH:ShortChannel()
@@ -1024,7 +1032,7 @@ function CH:GetBNFirstToonClassColor(id)
 			if numGameAccounts > 0 then
 				for y = 1, numGameAccounts do
 					local _, _, client, _, _, _, _, Class = BNGetFriendGameAccountInfo(i, y)
-					if (client == BNET_CLIENT_WOW) and Class and Class ~= '' then
+					if (Class and Class ~= '') and (client == BNET_CLIENT_WOW) then
 						return Class --return the first toon's class
 					end
 				end
@@ -1054,7 +1062,7 @@ function CH:GetBNFriendColor(name, id, useBTag)
 	end
 
 	Class = E:UnlocalizedClassName(Class)
-	local COLOR = Class and (_G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS[Class] or _G.RAID_CLASS_COLORS[Class])
+	local COLOR = E:ClassColor(Class)
 
 	return (COLOR and format('|c%s%s|r', COLOR.colorStr, TAG or name)) or TAG or name, isBattleTagPresence and BATTLE_TAG
 end
@@ -1094,7 +1102,7 @@ function CH:GetColoredName(event, _, arg2, _, _, _, _, _, arg8, _, _, _, arg12)
 		local _, englishClass = GetPlayerInfoByGUID(arg12)
 
 		if ( englishClass ) then
-			local classColorTable = _G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS[englishClass] or _G.RAID_CLASS_COLORS[englishClass]
+			local classColorTable = E:ClassColor(englishClass)
 			if ( not classColorTable ) then
 				return arg2
 			end
@@ -1123,7 +1131,7 @@ function CH:ChatFrame_ReplaceIconAndGroupExpressions(message, noIconReplacement,
 				for i=1, GetNumGroupMembers() do
 					local name, _, subgroup, _, _, classFileName = GetRaidRosterInfo(i)
 					if ( name and subgroup == groupIndex ) then
-						local classColorTable = _G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS[classFileName] or _G.RAID_CLASS_COLORS[classFileName]
+						local classColorTable = E:ClassColor(classFileName)
 						if ( classColorTable ) then
 							name = format("\124cff%.2x%.2x%.2x%s\124r", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255, name)
 						end
@@ -1444,7 +1452,13 @@ function CH:ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg4, 
 
 			-- Player Flags
 			local pflag, chatIcon, pluginChatIcon = "", specialChatIcons[playerName], CH:GetPluginIcon(playerName)
-			if type(chatIcon) == 'function' then chatIcon = chatIcon() end
+			if type(chatIcon) == 'function' then
+				if chatIcon == itsSimpy and not CH:MessageIsProtected(message) then
+					message = SimpysText(message)
+				end
+
+				chatIcon = chatIcon()
+			end
 
 			if arg6 ~= "" then -- Blizzard Flags
 				if arg6 == "GM" or arg6 == "DEV" then -- Blizzard Icon, this was sent by a GM or Dev.
@@ -1518,7 +1532,7 @@ function CH:ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg4, 
 			--BN_WHISPER FIXME
 			ChatEdit_SetLastTellTarget(arg2, chatType)
 			if ( frame.tellTimer and (GetTime() > frame.tellTimer) ) then
-				PlaySound(SOUNDKIT.TELL_MESSAGE)
+				PlaySound(SOUNDKIT_TELL_MESSAGE)
 			end
 			frame.tellTimer = GetTime() + _G.CHAT_TELL_ALERT_TIME
 			--FCF_FlashTab(frame)
@@ -1543,8 +1557,8 @@ function CH:ChatFrame_ConfigEventHandler(...)
 	return ChatFrame_ConfigEventHandler(...)
 end
 
-function CH:ChatFrame_SystemEventHandler(...)
-	return ChatFrame_SystemEventHandler(...)
+function CH:ChatFrame_SystemEventHandler(frame, event, message, ...)
+	return ChatFrame_SystemEventHandler(frame, event, message, ...)
 end
 
 function CH:ChatFrame_OnEvent(...)
@@ -1575,13 +1589,19 @@ function CH:SetupChat()
 		frame:SetTimeVisible(100)
 		frame:SetFading(self.db.fade)
 
-		if not frame.scriptsSet then
-			frame:SetScript("OnMouseWheel", ChatFrame_OnMouseScroll)
+		if id ~= 2 and not frame.OldAddMessage then
+			--Don't add timestamps to combat log, they don't work.
+			--This usually taints, but LibChatAnims should make sure it doesn't.
+			frame.OldAddMessage = frame.AddMessage
+			frame.AddMessage = CH.AddMessage
+		end
 
+		if not frame.scriptsSet then
 			if id ~= 2 then
 				frame:SetScript("OnEvent", FloatingChatFrameOnEvent)
 			end
 
+			frame:SetScript("OnMouseWheel", ChatFrame_OnMouseScroll)
 			hooksecurefunc(frame, "SetScript", function(f, script, func)
 				if script == "OnMouseWheel" and func ~= ChatFrame_OnMouseScroll then
 					f:SetScript(script, ChatFrame_OnMouseScroll)
@@ -1596,7 +1616,6 @@ function CH:SetupChat()
 	end
 
 	_G.GeneralDockManager:SetParent(_G.LeftChatPanel)
-	-- self:ScheduleRepeatingTimer('PositionChat', 1)
 	self:PositionChat(true)
 
 	if not self.HookSecured then
@@ -1606,72 +1625,56 @@ function CH:SetupChat()
 end
 
 local function PrepareMessage(author, message)
-	return strupper(author)..message
+	if author and author ~= '' and message and message ~= '' then
+		return strupper(author) .. message
+	end
 end
 
-function CH:ChatThrottleHandler(_, arg1, arg2) -- event, arg1, arg2
-	if arg2 ~= "" then
-		local message = PrepareMessage(arg2, arg1)
-		if msgList[message] == nil then
-			msgList[message] = true
-			msgCount[message] = 1
-			msgTime[message] = time()
-		else
-			msgCount[message] = msgCount[message] + 1
+function CH:ChatThrottleHandler(arg1, arg2, when)
+	local msg = PrepareMessage(arg1, arg2)
+	if msg then
+		for message, object in pairs(throttle) do
+			if difftime(when, object.time) >= CH.db.throttleInterval then
+				throttle[message] = nil
+			end
 		end
+
+		if not throttle[msg] then
+			throttle[msg] = {time = time(), count = 1}
+		else
+			throttle[msg].count = throttle[msg].count + 1
+		end
+	end
+end
+
+function CH:ChatThrottleBlockFlag(author, message, when)
+	local msg = (author ~= PLAYER_NAME) and (CH.db.throttleInterval ~= 0) and PrepareMessage(author, message)
+	local object = msg and throttle[msg]
+
+	return object and object.time and object.count and object.count > 1 and (difftime(when, object.time) <= CH.db.throttleInterval), object
+end
+
+function CH:ChatThrottleIntervalHandler(event, message, author, ...)
+	local blockFlag, blockObject = CH:ChatThrottleBlockFlag(author, message, time())
+
+	if blockFlag then
+		return true
+	else
+		if blockObject then blockObject.time = time() end
+		return CH.FindURL(self, event, message, author, ...)
 	end
 end
 
 function CH:CHAT_MSG_CHANNEL(event, message, author, ...)
-	local blockFlag = false
-	local msg = PrepareMessage(author, message)
-
-	-- ignore player messages
-	if author == PLAYER_NAME then return CH.FindURL(self, event, message, author, ...) end
-	if msgList[msg] and CH.db.throttleInterval ~= 0 then
-		if difftime(time(), msgTime[msg]) <= CH.db.throttleInterval then
-			blockFlag = true
-		end
-	end
-
-	if blockFlag then
-		return true
-	else
-		if CH.db.throttleInterval ~= 0 then
-			msgTime[msg] = time()
-		end
-
-		return CH.FindURL(self, event, message, author, ...)
-	end
+	return CH:ChatThrottleIntervalHandler(event, message, author, ...)
 end
 
 function CH:CHAT_MSG_YELL(event, message, author, ...)
-	local blockFlag = false
-	local msg = PrepareMessage(author, message)
-
-	if msg == nil then return CH.FindURL(self, event, message, author, ...) end
-
-	-- ignore player messages
-	if author == PLAYER_NAME then return CH.FindURL(self, event, message, author, ...) end
-	if msgList[msg] and msgCount[msg] > 1 and CH.db.throttleInterval ~= 0 then
-		if difftime(time(), msgTime[msg]) <= CH.db.throttleInterval then
-			blockFlag = true
-		end
-	end
-
-	if blockFlag then
-		return true
-	else
-		if CH.db.throttleInterval ~= 0 then
-			msgTime[msg] = time()
-		end
-
-		return CH.FindURL(self, event, message, author, ...)
-	end
+	return CH:ChatThrottleIntervalHandler(event, message, author, ...)
 end
 
 function CH:CHAT_MSG_SAY(event, message, author, ...)
-	return CH.FindURL(self, event, message, author, ...)
+	return CH:ChatThrottleIntervalHandler(event, message, author, ...)
 end
 
 function CH:ThrottleSound()
@@ -1728,9 +1731,11 @@ function CH:CheckKeyword(message, author)
 				local classMatch = CH.ClassNames[lowerCaseWord]
 				local wordMatch = classMatch and lowerCaseWord
 
-				if(wordMatch and not E.global.chat.classColorMentionExcludedNames[wordMatch]) then
-					local classColorTable = _G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS[classMatch] or _G.RAID_CLASS_COLORS[classMatch]
-					word = gsub(word, gsub(tempWord, "%-","%%-"), format("\124cff%.2x%.2x%.2x%s\124r", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255, tempWord))
+				if wordMatch and not E.global.chat.classColorMentionExcludedNames[wordMatch] then
+					local classColorTable = E:ClassColor(classMatch)
+					if classColorTable then
+						word = gsub(word, gsub(tempWord, "%-","%%-"), format("\124cff%.2x%.2x%.2x%s\124r", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255, tempWord))
+					end
 				end
 			end
 		end
@@ -1778,11 +1783,33 @@ function CH:SetChatFont(dropDown, chatFrame, fontSize)
 	chatFrame:FontTemplate(LSM:Fetch("font", self.db.font), fontSize, self.db.fontOutline)
 end
 
+local SecureSlashCMD = {
+	'^/rl',
+	'^/tar',
+	'^/target',
+	'^/startattack',
+	'^/stopattack',
+	'^/assist',
+	'^/cast',
+	'^/use',
+	'^/castsequence',
+	'^/cancelaura',
+	'^/cancelform',
+	'^/equip',
+	'^/exit',
+	'^/camp',
+	'^/logout'
+}
+
 function CH:ChatEdit_AddHistory(_, line) -- editBox, line
 	line = line and strtrim(line)
 
 	if line and strlen(line) > 0 then
-		if strfind(line, '/rl') then return end
+		for _, command in next, SecureSlashCMD do
+			if strmatch(line, command) then
+				return
+			end
+		end
 
 		for index, text in pairs(ElvCharacterDB.ChatEditHistory) do
 			if text == line then
@@ -1838,7 +1865,7 @@ function CH:UpdateFading()
 end
 
 function CH:DisplayChatHistory()
-	local data, d = ElvCharacterDB.ChatHistoryLog
+	local data = ElvCharacterDB.ChatHistoryLog
 	if not (data and next(data)) then return end
 
 	if not GetPlayerInfoByGUID(E.myguid) then
@@ -1849,7 +1876,7 @@ function CH:DisplayChatHistory()
 	CH.SoundTimer = true
 	for _, chat in pairs(_G.CHAT_FRAMES) do
 		for i=1, #data do
-			d = data[i]
+			local d = data[i]
 			if type(d) == 'table' then
 				for _, messageType in pairs(_G[chat].messageTypeList) do
 					if gsub(strsub(d[50],10),'_INFORM','') == messageType then
@@ -1891,20 +1918,20 @@ function CH:DelayGuildMOTD()
 end
 
 function CH:SaveChatHistory(event, ...)
-	if not self.db.chatHistory then return end
-	local data = ElvCharacterDB.ChatHistoryLog
-
-	if self.db.throttleInterval ~= 0 and (event == 'CHAT_MSG_SAY' or event == 'CHAT_MSG_YELL' or event == 'CHAT_MSG_CHANNEL') then
-		self:ChatThrottleHandler(event, ...)
-
+	if CH.db.throttleInterval ~= 0 and (event == 'CHAT_MSG_SAY' or event == 'CHAT_MSG_YELL' or event == 'CHAT_MSG_CHANNEL') then
 		local message, author = ...
-		local msg = PrepareMessage(author, message)
-		if author ~= PLAYER_NAME and msgList[msg] then
-			if difftime(time(), msgTime[msg]) <= CH.db.throttleInterval then
-				return
-			end
+		local when = time()
+
+		CH:ChatThrottleHandler(author, message, when)
+
+		if CH:ChatThrottleBlockFlag(author, message, when) then
+			return
 		end
 	end
+
+	if not CH.db.chatHistory then return end
+	local data = ElvCharacterDB.ChatHistoryLog
+	if not data then return end
 
 	local tempHistory = {}
 	for i = 1, select('#', ...) do

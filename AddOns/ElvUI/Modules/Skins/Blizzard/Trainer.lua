@@ -9,11 +9,11 @@ local strfind = strfind
 --WoW API / Variables
 local hooksecurefunc = hooksecurefunc
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.trainer then return end
+function S:Blizzard_TrainerUI()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.trainer) then return end
 
 	local ClassTrainerFrame = _G.ClassTrainerFrame
-	S:HandleFrame(ClassTrainerFrame, true, nil, 10, -11, -32, 74)
+	S:HandleFrame(ClassTrainerFrame, true, nil, 11, -12, -32, 76)
 
 	_G.ClassTrainerExpandButtonFrame:StripTextures()
 
@@ -30,10 +30,13 @@ local function LoadSkin()
 
 	_G.ClassTrainerCancelButton:Kill()
 
-	S:HandleButton(_G.ClassTrainerTrainButton)
-	_G.ClassTrainerTrainButton:Point('BOTTOMRIGHT', -38, 80)
+	_G.ClassTrainerMoneyFrame:ClearAllPoints()
+	_G.ClassTrainerMoneyFrame:Point('BOTTOMLEFT', _G.ClassTrainerFrame, 'BOTTOMLEFT', 18, 82)
 
-	S:HandleCloseButton(_G.ClassTrainerFrameCloseButton)
+	S:HandleButton(_G.ClassTrainerTrainButton)
+	_G.ClassTrainerTrainButton:Point('BOTTOMRIGHT', -36, 80)
+
+	S:HandleCloseButton(_G.ClassTrainerFrameCloseButton, ClassTrainerFrame.backdrop)
 
 	hooksecurefunc('ClassTrainer_SetSelection', function()
 		local skillIcon = _G.ClassTrainerSkillIcon:GetNormalTexture()
@@ -96,4 +99,4 @@ local function LoadSkin()
 	end)
 end
 
-S:AddCallbackForAddon('Blizzard_TrainerUI', 'Skin_Blizzard_TrainerUI', LoadSkin)
+S:AddCallbackForAddon('Blizzard_TrainerUI')

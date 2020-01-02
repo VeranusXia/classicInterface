@@ -1,6 +1,5 @@
-## Interface: 11302 
+## Interface: 11303 
 ## Title: SharedMedia_MyMedia 
 ## Dependencies: SharedMedia 
 MyMedia.lua
-YYW.lua 
-
+EasyChannel.lua

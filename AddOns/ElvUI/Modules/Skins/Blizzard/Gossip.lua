@@ -5,8 +5,8 @@ local S = E:GetModule('Skins')
 --Lua functions
 local _G = _G
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.gossip then return end
+function S:GossipFrame()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.gossip) then return end
 
 	-- GossipFrame
 	local GossipFrame = _G.GossipFrame
@@ -91,7 +91,7 @@ local function LoadSkin()
 
 	S:HandleScrollBar(_G.ItemTextScrollFrameScrollBar)
 
-	S:HandleCloseButton(_G.ItemTextCloseButton)
+	S:HandleCloseButton(_G.ItemTextCloseButton, ItemTextFrame.backdrop)
 
 	local NPCFriendshipStatusBar = _G.NPCFriendshipStatusBar
 	NPCFriendshipStatusBar:StripTextures()
@@ -101,4 +101,4 @@ local function LoadSkin()
 	E:RegisterStatusBar(NPCFriendshipStatusBar)
 end
 
-S:AddCallback('Skin_Gossip', LoadSkin)
+S:AddCallback('GossipFrame')

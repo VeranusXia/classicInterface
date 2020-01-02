@@ -94,6 +94,7 @@ L["Armorer"] = "Armoraria"
 L["Armorer & Shieldcrafter"] = "Armaduras e Escudos"
 L["Armorer & Shieldsmith"] = true
 L["Armorer and Shieldcrafter"] = "Fabricante de Armaduras e Escudos"
+L["Armorsmith"] = "Ferreiro de Armaduras"
 L["Arnok"] = true
 L["Arnold Leland"] = "Arnoldo Gurjão"
 L["Arthur Moore"] = "Arturo Moura"
@@ -223,6 +224,7 @@ L["Booty Bay, Stranglethorn"] = "Angra do Butim, Selva do Espinhaço"
 L["Boran Ironclink"] = "Boran Tilintaço"
 L["Borand"] = true
 L["Borgosh Corebender"] = "Borgosh Dobranúcleo"
+L["Borgus Steelhand"] = "Borgus Manácero"
 L["Borgus Stoutarm"] = "Borgus Braçoforte"
 L["Borstan"] = "Borsgan"
 L["Borya"] = true
@@ -275,6 +277,7 @@ L["Brother Joshua"] = "Irmão Josué"
 L["Brother Karman"] = "Irmão Karman da Guia"
 L["Brother Sammuel"] = "Irmão Samuel"
 L["Brother Wilhelm"] = "Irmão Guilhermino"
+L["Brumn Winterhoof"] = "Brum Casco Invernal"
 L["Bruuk Barleybeard"] = "Bruuk Cevabarba"
 L["Bryan Cross"] = "Marques Martinho"
 L["Bryllia Ironbrand"] = "Bryllia Marcaferro"
@@ -630,7 +633,9 @@ L["Gorbold Steelhand"] = "Gorbold Manácero"
 L["Gordon Wendham"] = "Antônio Nunes"
 L["Gorina"] = true
 L["Gorkas"] = true
+L["Gorn One Eye"] = "Gorn Caolho"
 L["Gorrik"] = true
+L["Gorzeeki Wildeyes"] = "Gorzeeki Olholouco"
 L["Gothor Brumn"] = true
 L["Gotri"] = true
 L["Graham Van Talen"] = "Gontrão Henriques"
@@ -951,6 +956,7 @@ L["Keena"] = true
 L["Keina"] = true
 L["Keldas"] = true
 L["Keldric Boucher"] = "Orlande Bórgia"
+L["Kelgruk Bloodaxe"] = "Kelgruk Machado Sangrento"
 L["Kelm Hargunth"] = true
 L["Kelomir Ironhand"] = "Kelomir Maniferro"
 L["Kelsey Yance"] = true
@@ -1163,6 +1169,7 @@ L["Masat T'andr"] = true
 L["Master Alchemist"] = true
 L["Master Blacksmith"] = "Mestre Ferreiro"
 L["Master Dragonscale Leatherworker"] = true
+L["Master Elemental Leatherworker"] = "Mestre Coureira Elemental"
 L["Master Engineer"] = true
 L["Master Gnome Engineer"] = "Mestre Engenheiro Gnomo"
 L["Master Goblin Engineer"] = true
@@ -1228,6 +1235,7 @@ L["Mistress of Cheese"] = "Dama da Queijaria"
 L["Montarr"] = true
 L["Moodan Sungrain"] = "Moodan Grão Solar"
 L["Moonglade"] = "Clareira da Lua"
+L["Moonrage Armorer"] = "Armoreiro Lunafúria"
 L["Moorane Hearthgrain"] = "Moorane Grão do Fogo"
 L["Mooranta"] = true
 L["Moorat Longstride"] = "Moorat Passo Longo"
@@ -1315,6 +1323,7 @@ L["Oglethorpe Obnoticus"] = "Olhatorto Obnótico"
 L["Ogromm"] = true
 L["Ogunaro Wolfrunner"] = "Ogunaro Correlobos"
 L["Ohanko"] = true
+L["Okothos Ironrager"] = "Okothos Furiferro"
 L["Old Man Heming"] = "Velho Heming"
 L["Oliver Dwor"] = "Olivier Ewor"
 L["Olivia Burnside"] = "Didi Ardelado"
@@ -1373,6 +1382,7 @@ L["Priestess Josetta"] = "Sacerdotisa Joselita"
 L["Profession Trainers"] = "Profession Trainers"
 L["Pyall Silentstride"] = "Pyall Passo Tranquilo"
 L["Pyrewood Armorer"] = "Armoreiro de Lenhardente"
+L["Pyrewood Tailor"] = "Alfaiate de Lenhardente"
 L["Qeeju"] = "Quoiju"
 L["Qia"] = true
 L["Qixdi Goodstitch"] = "Qixdi Pontobom"
@@ -1454,6 +1464,7 @@ L["Sanuye Runetotem"] = "Sanuye Runa Totem"
 L["Sarah Goode"] = "Sara Goode"
 L["Sarah Killian"] = "Cilene Rocha"
 L["Sarah Raycroft"] = "Sara Croft"
+L["Sarah Tanner"] = "Sara Correia"
 L["Sark Ragetotem"] = "Sark Totem da Fúria"
 L["Saru Steelfury"] = "Saru Furiácero"
 L["Savanne"] = true
@@ -1553,6 +1564,7 @@ L["Spirit Healer"] = "Anjo da Cura"
 L["Splintertree Post, Ashenvale"] = "Posto Machadada, Vale Gris"
 L["Springspindle Fizzlegear"] = "Carretemola Fungrenagem"
 L["Sprite Jumpsprocket"] = "Lorien Grenagem"
+L["Squire Leoren Mal'derath"] = "Escudeiro Leoren Mal'derath"
 L["Sraaz"] = "Siraaz"
 L["Sranda"] = true
 L["Stable Master"] = "Mestre de Estábulo"
@@ -1805,6 +1817,7 @@ L["Warg Deepwater"] = "Warg Aguafunda"
 L["Warlock Trainer"] = "Treinamento de Bruxos"
 L["Warrior Trainer"] = "Treinamento de Guerreiros"
 L["Warsong Supply Officer"] = "Oficial Intendente do Brado Guerreiro"
+L["Weapon Crafter"] = "Ferreiro de Armas"
 L["Weapon Dealer"] = "Negociante de Armas"
 L["Weapon Master"] = "Mestre de Armas"
 L["Weapon Merchant"] = "Armas"
@@ -1895,6 +1908,8 @@ L["All"] = "All"
 --[[Translation missing --]]
 L["Allow right click to create waypoints with TomTom"] = "Allow right click to create waypoints with TomTom"
 --[[Translation missing --]]
+L["Already learned by"] = "Already learned by"
+--[[Translation missing --]]
 L["Always Show on Continent"] = "Always Show on Continent"
 --[[Translation missing --]]
 L["Ammo Vendors"] = "Ammo Vendors"
@@ -1903,7 +1918,13 @@ L["Catch-all for uncategorized vendors"] = "Catch-all for uncategorized vendors"
 --[[Translation missing --]]
 L["Cost"] = "Cost"
 --[[Translation missing --]]
+L["Could be learned by"] = "Could be learned by"
+--[[Translation missing --]]
 L["Distance"] = "Distance"
+--[[Translation missing --]]
+L["General"] = "General"
+--[[Translation missing --]]
+L["Icon"] = "Icon"
 --[[Translation missing --]]
 L["Item"] = "Item"
 --[[Translation missing --]]
@@ -1919,7 +1940,11 @@ L["Poison Vendors"] = "Poison Vendors"
 --[[Translation missing --]]
 L["Reagent Vendors"] = "Reagent Vendors"
 --[[Translation missing --]]
+L["Recipes"] = "Recipes"
+--[[Translation missing --]]
 L["Search for an item"] = "Search for an item"
+--[[Translation missing --]]
+L["Show Alt Recipes"] = "Show Alt Recipes"
 --[[Translation missing --]]
 L["Show Auctioneers"] = "Show Auctioneers"
 --[[Translation missing --]]
@@ -1945,6 +1970,8 @@ L["Show Map Button"] = "Show Map Button"
 --[[Translation missing --]]
 L["Show Minimap Button"] = "Show Minimap Button"
 --[[Translation missing --]]
+L["Show Mount Trainers"] = "Show Mount Trainers"
+--[[Translation missing --]]
 L["Show NPCs"] = "Show NPCs"
 --[[Translation missing --]]
 L["Show on Continent"] = "Show on Continent"
@@ -1962,6 +1989,8 @@ L["Show Undiscovered"] = "Show Undiscovered"
 L["Show Vendors"] = "Show Vendors"
 --[[Translation missing --]]
 L["Show Weapon Masters"] = "Show Weapon Masters"
+--[[Translation missing --]]
+L["Show which alts can learn a recipe in the item's tooltip"] = "Show which alts can learn a recipe in the item's tooltip"
 --[[Translation missing --]]
 L["Show/Hide Toggle"] = "Show/Hide Toggle"
 --[[Translation missing --]]
@@ -1984,6 +2013,8 @@ L["Vendor Profession Icon"] = "Vendor Profession Icon"
 L["Vendors"] = "Vendors"
 --[[Translation missing --]]
 L["Weapon Masters"] = "Weapon Masters"
+--[[Translation missing --]]
+L["Will be learnable by"] = "Will be learnable by"
 --[[Translation missing --]]
 L["Zone Alpha"] = "Zone Alpha"
 --[[Translation missing --]]
@@ -2027,11 +2058,13 @@ L["Bear Bracers"] = "Braçadeiras do Urso"
 L["Bear Buckler"] = "Broquel do Urso"
 L["Bearded Axe"] = "Machado Farpado"
 L["Beautiful Wildflowers"] = "Belas Flores Silvestres"
+L["Bellara's Nutterbar"] = "Barrinha da Bellara"
 L["Big Stick"] = "Trocho"
 L["BKP 2700 \"Enforcer\""] = "Persuasor BKP 2700"
 L["BKP 42 \"Ultra\""] = "Ultra BKP 42"
 L["Black Dye"] = "Pigmento Preto"
 L["Black Kingsnake"] = "Cobra-rei Preta"
+L["Black Lodestone"] = "Magnetita Preta"
 L["Black Rose"] = "Rosa Negra"
 L["Black Stallion Bridle"] = "Rédea de Garanhão Preto"
 L["Blackbone Wand"] = "Varinha de Osso Preto"
@@ -2046,6 +2079,7 @@ L["Blue Firework"] = "Fogos de Artifício Azuis"
 L["Blue Mechanostrider"] = "Mecanostruz Azul"
 L["Blue Ribboned Wrapping Paper"] = "Papel de Embrulho com Fita Azul"
 L["Blue Skeletal Horse"] = "Cavalo Descarnado Azul"
+L["Blue Sparkler"] = "Faiscante Azul"
 L["Blurred Axe"] = "Machado Sujo"
 L["Bold Yellow Shirt"] = "Camisa Amarelo-cheguei"
 L["Bottle of Dalaran Noir"] = "Garrafa de Noir de Dalaran"
@@ -2233,6 +2267,8 @@ L["Formula: Enchant Shield - Greater Stamina"] = "Fórmula: Encantamento Maior d
 L["Formula: Runed Arcanite Rod"] = "Fórmula: Bastão Rúnico de Arcanita"
 L["Francisca"] = "Frâncica"
 L["Freshly Baked Bread"] = "Pão Fresquinho"
+L["Furbolg Medicine Pouch"] = "Bolsa Medicinal de Pelurso"
+L["Furbolg Medicine Totem"] = "Totem Medicinal de Pelurso"
 L["Giant Mace"] = "Maça Gigante"
 L["Gladius"] = "Gládio"
 L["Gleaming Throwing Axe"] = "Machado de Arremesso Rebrilhante"
@@ -2378,6 +2414,7 @@ L["Ironwood Maul"] = "Malho de Pau-ferro"
 L["Ironwood Seed"] = "Semente de Pau-ferro"
 L["Jagged Arrow"] = "Flecha Serrilhada"
 L["Jambiya"] = true
+L["J'eevee's Jar"] = "Jarra do Jivil"
 L["Jug of Badlands Bourbon"] = "Jarra de Bourbon dos Ermos"
 L["Junglevine Wine"] = "Vinho Selvavinha"
 L["Keen Throwing Knife"] = "Faca de Arremesso Afiada"
@@ -2451,6 +2488,7 @@ L["Moist Cornbread"] = "Broa de Milho Molhadinha"
 L["Mood Ring"] = "Anel dos Sentimentos"
 L["Moon Harvest Pumpkin"] = "Abóbora da Colheita Lunar"
 L["Moonberry Juice"] = "Suco de Lunamora"
+L["Moonbrook Riot Taffy"] = "Puxa-puxa do Tumulto do Arroio da Lua"
 L["Morning Glory Dew"] = "Orvalho da Glória Matinal"
 L["Morning Star"] = "Maça de Guerra"
 L["Mulgore Spice Bread"] = "Pão Condimentado de Mulgore"
@@ -2668,8 +2706,10 @@ L["Red Mechanostrider"] = "Mecanostruz Vermelho"
 L["Red Ribboned Wrapping Paper"] = "Papel de Embrulho com Fita Vermelha"
 L["Red Rose"] = "Rosa Vermelha"
 L["Red Skeletal Horse"] = "Cavalo Descarnado Vermelho"
+L["Red Sparkler"] = "Faiscante Vermelho"
 L["Red Streaks Firework"] = "Fogos de Artifício de Centelhas Vermelhas"
 L["Red Traditional Hanbok"] = "Hanbok Tradicional Vermelho"
+L["Red, White and Blue Firework"] = "Fogos de Artifício Vermelho, Branco e Azul"
 L["Red-speckled Mushroom"] = "Cogumelo de Bolinhas Vermelhas"
 L["Refreshing Spring Water"] = "Água Refrescante da Fonte"
 L["Reinforced Bow"] = "Arco Reforçado"
@@ -2780,6 +2820,7 @@ L["Sergeant Major's Plate Wristguards"] = "Munhequeiras de Placa do Sargento-mor
 L["Sergeant Major's Silk Cuffs"] = "Manilhas de Seda do Sargento-mor"
 L["Sergeant's Cape"] = "Capa do Sargento"
 L["Sergeant's Cloak"] = "Manto do Sargento"
+L["Shadowy Potion"] = "Poção Sombria"
 L["Sharp Arrow"] = "Flecha Afiada"
 L["Sharp Throwing Axe"] = "Machado de Arremesso Afiado"
 L["Shimmering Silk Robes"] = "Vestes Cintilante de Seda"
@@ -2840,6 +2881,7 @@ L["Studded Hat"] = "Chapéu Cravejado"
 L["Studded Leather Harness"] = "Arnês de Couro Cravejado"
 L["Studded Pants"] = "Calças Cravejadas"
 L["Sturdy Recurve"] = "Arco Recurvo Robusto"
+L["Styleen's Sour Suckerpop"] = "Pirulito Azedo da Stilosa"
 L["Stylish Black Shirt"] = "Camisa Preta Estilosa"
 L["Superior Healing Draught"] = "Tisana de Cura Superior"
 L["Superior Healing Potion"] = "Poção Superior de Cura"
@@ -2918,6 +2960,7 @@ L["Whistle of the Emerald Raptor"] = "Apito do Raptor Esmeralda"
 L["Whistle of the Turquoise Raptor"] = "Apito do Raptor Turquesa"
 L["Whistle of the Violet Raptor"] = "Apito do Raptor Violeta"
 L["White Ram"] = "Carneiro Branco"
+L["White Sparkler"] = "Faiscante Branco"
 L["White Traditional Hanbok"] = "Hanbok Tradicional Branco"
 L["Wicked Throwing Dagger"] = "Adaga de Arremesso Maléfica"
 L["Wild Berries"] = "Frutas do Bosque"
@@ -2939,6 +2982,8 @@ L["Woven Bracers"] = "Braçadeiras Trançadas"
 L["Woven Gloves"] = "Luvas Trançadas"
 L["Woven Pants"] = "Calças Trançadas"
 L["Woven Vest"] = "Colete Trançado"
+L["Xorothian Glyphs"] = "Glifos Zorothianos"
+L["Xorothian Stardust"] = "Poeira Estelar Zorotiana"
 L["Yellow Dye"] = "Pigmento Amarelo"
 L["Yellow Rose Firework"] = "Fogos de Artifício da Rosa Amarela"
 L["Zweihander"] = "Bihänder"
@@ -4618,6 +4663,7 @@ L["Creepthess"] = "Rastejatriz"
 L["Cult of the Damned"] = "Seita dos Malditos"
 L["Cursed Centaur"] = "Centauro Amaldiçoado"
 L["Cyclok the Mad"] = "Cyclok, o Louco"
+L["Dalaran Miner"] = "Minerador de Dalaran"
 L["Dalaran Spellscribe"] = "Escriba Mágico de Dalaran"
 L["Darbel Montrose"] = true
 L["Darkmist Widow"] = "Viúva Névoa Negra"
@@ -4629,6 +4675,7 @@ L["Deathmaw"] = "Goela da Morte"
 L["Deathspeaker Selendre"] = "Morta-voz Selendre"
 L["Deeb"] = "Díbi"
 L["Dessecus"] = "Áridus"
+L["Diamond Head"] = "Cabeça de Diamante"
 L["Digger Flameforge"] = "Cavador Forjaflama"
 L["Dishu"] = true
 L["Dragonmaw Battlemaster"] = "Mestre de Batalha Presa do Dragão"
@@ -4806,6 +4853,7 @@ L["Razortalon"] = "Garravalha"
 L["Rekk'tilac"] = true
 L["Ressan the Needler"] = "Ressan, o Agulheiro"
 L["Retherokk the Berserker"] = "Retherokk, o Berserker"
+L["Rex Ashil"] = true
 L["Ribchaser"] = "Quebra-costelas"
 L["Rippa"] = "Razga"
 L["Ripscale"] = "Rancascame"
@@ -4823,6 +4871,7 @@ L["Scalebeard"] = "Barbescama"
 L["Scargil"] = "Rasguelra"
 L["Scarlet Executioner"] = "Carrasco Escarlate"
 L["Scarlet High Clerist"] = "Alto-clérigo Escarlate"
+L["Scarlet Interrogator"] = "Interrogador Escarlate"
 L["Scarlet Judge"] = "Juiz Escarlate"
 L["Scarlet Smith"] = "Ferreiro Escarlate"
 L["Seeker Aqualon"] = "Perscrutador Aqualon"

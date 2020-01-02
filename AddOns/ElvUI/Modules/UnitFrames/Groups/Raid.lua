@@ -23,35 +23,35 @@ function UF:Construct_RaidFrames()
 	self.RaisedElementParent:SetFrameLevel(self:GetFrameLevel() + 100)
 
 	self.Health = UF:Construct_HealthBar(self, true, true, 'RIGHT')
-
 	self.Power = UF:Construct_PowerBar(self, true, true, 'LEFT')
 	self.Power.frequentUpdates = false;
-
-	self.PowerPrediction = UF:Construct_PowerPrediction(self)
-
-	self.Portrait3D = UF:Construct_Portrait(self, 'model')
-	self.Portrait2D = UF:Construct_Portrait(self, 'texture')
-
+	self.InfoPanel = UF:Construct_InfoPanel(self)
 	self.Name = UF:Construct_NameText(self)
+
 	self.Buffs = UF:Construct_Buffs(self)
 	self.Debuffs = UF:Construct_Debuffs(self)
+
 	self.AuraWatch = UF:Construct_AuraWatch(self)
-	self.RaidDebuffs = UF:Construct_RaidDebuffs(self)
+	self.customTexts = {}
+	self.Cutaway = UF:Construct_Cutaway(self)
 	self.DebuffHighlight = UF:Construct_DebuffHighlight(self)
-	self.RaidRoleFramesAnchor = UF:Construct_RaidRoleFrames(self)
-	self.PhaseIndicator = UF:Construct_PhaseIcon(self)
-	self.MouseGlow = UF:Construct_MouseGlow(self)
-	self.TargetGlow = UF:Construct_TargetGlow(self)
+	self.Fader = UF:Construct_Fader()
 	self.HealthPrediction = UF:Construct_HealComm(self)
+	self.MouseGlow = UF:Construct_MouseGlow(self)
+	self.PhaseIndicator = UF:Construct_PhaseIcon(self)
+	self.Portrait2D = UF:Construct_Portrait(self, 'texture')
+	self.Portrait3D = UF:Construct_Portrait(self, 'model')
+	self.PowerPrediction = UF:Construct_PowerPrediction(self)
+	self.RaidDebuffs = UF:Construct_RaidDebuffs(self)
+	self.RaidRoleFramesAnchor = UF:Construct_RaidRoleFrames(self)
 	self.RaidTargetIndicator = UF:Construct_RaidIcon(self)
 	self.ReadyCheckIndicator = UF:Construct_ReadyCheckIcon(self)
-	self.Fader = UF:Construct_Fader()
-	self.Cutaway = UF:Construct_Cutaway(self)
-
-	self.customTexts = {}
-	self.InfoPanel = UF:Construct_InfoPanel(self)
+	self.ResurrectIndicator = UF:Construct_ResurrectionIcon(self)
+	self.TargetGlow = UF:Construct_TargetGlow(self)
+	self.ThreatIndicator = UF:Construct_Threat(self)
 
 	self.unitframeType = "raid"
+
 	UF:Update_StatusBars()
 	UF:Update_FontStrings()
 
@@ -147,7 +147,7 @@ function UF:Update_RaidFrames(frame, db)
 		frame.POWERBAR_DETACHED = db.power.detachFromFrame
 		frame.USE_INSET_POWERBAR = not frame.POWERBAR_DETACHED and db.power.width == 'inset' and frame.USE_POWERBAR
 		frame.USE_MINI_POWERBAR = (not frame.POWERBAR_DETACHED and db.power.width == 'spaced' and frame.USE_POWERBAR)
-		frame.USE_POWERBAR_OFFSET = db.power.offset ~= 0 and frame.USE_POWERBAR and not frame.POWERBAR_DETACHED
+		frame.USE_POWERBAR_OFFSET = (db.power.width == 'offset' and db.power.offset ~= 0) and frame.USE_POWERBAR and not frame.POWERBAR_DETACHED
 		frame.POWERBAR_OFFSET = frame.USE_POWERBAR_OFFSET and db.power.offset or 0
 
 		frame.POWERBAR_HEIGHT = not frame.USE_POWERBAR and 0 or db.power.height
@@ -166,63 +166,32 @@ function UF:Update_RaidFrames(frame, db)
 		frame.VARIABLES_SET = true
 	end
 
-	if not InCombatLockdown() then
-		frame:Size(frame.UNIT_WIDTH, frame.UNIT_HEIGHT)
-	end
+	frame:Size(frame.UNIT_WIDTH, frame.UNIT_HEIGHT)
 
-	UF:Configure_InfoPanel(frame)
-	--Health
 	UF:Configure_HealthBar(frame)
-
-	--Name
+	UF:Configure_Power(frame)
+	UF:Configure_InfoPanel(frame)
 	UF:UpdateNameSettings(frame)
 
-	--Power
-	UF:Configure_Power(frame)
-
-	-- Power Predicition
-	UF:Configure_PowerPrediction(frame)
-
-	--Portrait
-	UF:Configure_Portrait(frame)
-
-	--Auras
 	UF:EnableDisable_Auras(frame)
 	UF:Configure_Auras(frame, 'Buffs')
 	UF:Configure_Auras(frame, 'Debuffs')
 
-	--RaidDebuffs
-	UF:Configure_RaidDebuffs(frame)
-
-	--Raid Icon
-	UF:Configure_RaidIcon(frame)
-
-	--Debuff Highlight
-	UF:Configure_DebuffHighlight(frame)
-
-	--OverHealing
-	UF:Configure_HealComm(frame)
-
-	--Raid Roles
-	UF:Configure_RaidRoleIcons(frame)
-
-	--Fader
-	UF:Configure_Fader(frame)
-
-	--Buff Indicators
-	UF:UpdateAuraWatch(frame)
-
-	--ReadyCheck
-	UF:Configure_ReadyCheckIcon(frame)
-
-	--CustomTexts
+	UF:Configure_AuraWatch(frame)
 	UF:Configure_CustomTexts(frame)
-
-	-- PhaseIndicator
-	UF:Configure_PhaseIcon(frame)
-
-	--Cutaway
 	UF:Configure_Cutaway(frame)
+	UF:Configure_DebuffHighlight(frame)
+	UF:Configure_Fader(frame)
+	UF:Configure_HealComm(frame)
+	UF:Configure_PhaseIcon(frame)
+	UF:Configure_Portrait(frame)
+	UF:Configure_PowerPrediction(frame)
+	UF:Configure_RaidDebuffs(frame)
+	UF:Configure_RaidIcon(frame)
+	UF:Configure_RaidRoleIcons(frame)
+	UF:Configure_ReadyCheckIcon(frame)
+	UF:Configure_ResurrectionIcon(frame)
+	UF:Configure_Threat(frame)
 
 	frame:UpdateAllElements("ElvUI_UpdateAllElements")
 end

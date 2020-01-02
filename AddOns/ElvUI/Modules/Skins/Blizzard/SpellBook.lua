@@ -5,13 +5,13 @@ local S = E:GetModule('Skins')
 --Lua functions
 local _G = _G
 local unpack = unpack
+local select = select
 --WoW API / Variables
-local SpellBook_GetCurrentPage = SpellBook_GetCurrentPage
-local BOOKTYPE_SPELL = BOOKTYPE_SPELL
-local MAX_SKILLLINE_TABS = MAX_SKILLLINE_TABS
+local CreateFrame = CreateFrame
+local hooksecurefunc = hooksecurefunc
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.spellbook then return end
+function S:SpellBookFrame()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.spellbook) then return end
 
 	S:HandleFrame(_G.SpellBookFrame, true, nil, 11, -12, -32, 76)
 
@@ -33,7 +33,7 @@ local function LoadSkin()
 	_G.SpellBookNextPageButton:Point('TOPLEFT', _G.SpellBookPrevPageButton, 'TOPLEFT', 30, 0)
 	_G.SpellBookNextPageButton:Size(24)
 
-	S:HandleCloseButton(_G.SpellBookCloseButton, SpellBookFrame.backdrop)
+	S:HandleCloseButton(_G.SpellBookCloseButton, _G.SpellBookFrame.backdrop)
 
 	for i = 1, 3 do
 		local tab = _G['SpellBookFrameTabButton'..i]
@@ -87,18 +87,16 @@ local function LoadSkin()
 		E:RegisterCooldown(cooldown)
 	end
 
-	_G.SpellButton1:Point('TOPLEFT', _G.SpellBookSpellIconsFrame, 'TOPLEFT', 28, -55)
-	_G.SpellButton2:Point('TOPLEFT', _G.SpellButton1, 'TOPLEFT', 163, 0)
-	_G.SpellButton3:Point('TOPLEFT', _G.SpellButton1, 'BOTTOMLEFT', 0, -20)
-	_G.SpellButton4:Point('TOPLEFT', _G.SpellButton3, 'TOPLEFT', 163, 0)
-	_G.SpellButton5:Point('TOPLEFT', _G.SpellButton3, 'BOTTOMLEFT', 0, -20)
-	_G.SpellButton6:Point('TOPLEFT', _G.SpellButton5, 'TOPLEFT', 163, 0)
-	_G.SpellButton7:Point('TOPLEFT', _G.SpellButton5, 'BOTTOMLEFT', 0, -20)
-	_G.SpellButton8:Point('TOPLEFT', _G.SpellButton7, 'TOPLEFT', 163, 0)
-	_G.SpellButton9:Point('TOPLEFT', _G.SpellButton7, 'BOTTOMLEFT', 0, -20)
-	_G.SpellButton10:Point('TOPLEFT', _G.SpellButton9, 'TOPLEFT', 163, 0)
-	_G.SpellButton11:Point('TOPLEFT', _G.SpellButton9, 'BOTTOMLEFT', 0, -20)
-	_G.SpellButton12:Point('TOPLEFT', _G.SpellButton11, 'TOPLEFT', 163, 0)
+	S:HandlePointXY(_G.SpellButton1, 28, -55)
+
+	-- evens
+	for i = 2, _G.SPELLS_PER_PAGE, 2 do
+		S:HandlePointXY(_G['SpellButton'..i], 163, 0)
+	end
+	-- odds
+	for i = 3, _G.SPELLS_PER_PAGE, 2 do
+		S:HandlePointXY(_G['SpellButton'..i], 0, -20)
+	end
 
 	hooksecurefunc('SpellButton_UpdateButton', function(self)
 		local spellName = _G[self:GetName()..'SpellName']
@@ -142,4 +140,5 @@ local function LoadSkin()
 	end
 end
 
-S:AddCallback('Skin_Spellbook', LoadSkin)
+S:AddCallback('SpellBookFrame')
+

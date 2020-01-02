@@ -35,15 +35,11 @@ local function SkinNavBarButtons(self)
 	end
 end
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.misc then return end
+function S:BlizzardMiscFrames()
+	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.misc) then return end
 
 	-- Blizzard frame we want to reskin
 	local skins = {
-		'StaticPopup1',
-		'StaticPopup2',
-		'StaticPopup3',
-		'StaticPopup4',
 		'InterfaceOptionsFrame',
 		'VideoOptionsFrame',
 		'AudioOptionsFrame',
@@ -60,33 +56,11 @@ local function LoadSkin()
 
 	if not IsAddOnLoaded('ConsolePortUI_Menu') then
 		-- reskin all esc/menu buttons
-		local BlizzardMenuButtons = {
-			_G.GameMenuButtonOptions,
-			_G.GameMenuButtonSoundOptions,
-			_G.GameMenuButtonUIOptions,
-			_G.GameMenuButtonKeybindings,
-			_G.GameMenuButtonMacros,
-			_G.GameMenuButtonAddOns,
-			_G.GameMenuButtonWhatsNew,
-			_G.GameMenuButtonRatings,
-			_G.GameMenuButtonAddons,
-			_G.GameMenuButtonLogout,
-			_G.GameMenuButtonQuit,
-			_G.GameMenuButtonContinue,
-			_G.GameMenuButtonMacOptions,
-			_G.GameMenuButtonStore,
-			_G.GameMenuButtonHelp
-		}
-
-		for i = 1, #BlizzardMenuButtons do
-			local menuButton = BlizzardMenuButtons[i]
-			if menuButton then
-				S:HandleButton(menuButton)
+		for _, Button in pairs({_G.GameMenuFrame:GetChildren()}) do
+			if Button.IsObjectType and Button:IsObjectType("Button") then
+				S:HandleButton(Button)
 			end
 		end
-
-		-- Skin the ElvUI Menu Button
-		S:HandleButton(_G.GameMenuFrame.ElvUI)
 
 		_G.GameMenuFrame:StripTextures()
 		_G.GameMenuFrame:SetTemplate('Transparent')
@@ -102,14 +76,14 @@ local function LoadSkin()
 	-- since we cant hook `CinematicFrame_OnShow` or `CinematicFrame_OnEvent` directly
 	-- we can just hook onto this function so that we can get the correct `self`
 	-- this is called through `CinematicFrame_OnShow` so the result would still happen where we want
-	hooksecurefunc('CinematicFrame_OnDisplaySizeChanged', function(self)
-		if self and self.closeDialog and not self.closeDialog.template then
-			self.closeDialog:StripTextures()
-			self.closeDialog:SetTemplate('Transparent')
-			self:SetScale(_G.UIParent:GetScale())
-			local dialogName = self.closeDialog.GetName and self.closeDialog:GetName()
-			local closeButton = self.closeDialog.ConfirmButton or (dialogName and _G[dialogName..'ConfirmButton'])
-			local resumeButton = self.closeDialog.ResumeButton or (dialogName and _G[dialogName..'ResumeButton'])
+	hooksecurefunc('CinematicFrame_OnDisplaySizeChanged', function(s)
+		if s and s.closeDialog and not s.closeDialog.template then
+			s.closeDialog:StripTextures()
+			s.closeDialog:SetTemplate('Transparent')
+			s:SetScale(_G.UIParent:GetScale())
+			local dialogName = s.closeDialog.GetName and s.closeDialog:GetName()
+			local closeButton = s.closeDialog.ConfirmButton or (dialogName and _G[dialogName..'ConfirmButton'])
+			local resumeButton = s.closeDialog.ResumeButton or (dialogName and _G[dialogName..'ResumeButton'])
 			if closeButton then S:HandleButton(closeButton) end
 			if resumeButton then S:HandleButton(resumeButton) end
 		end
@@ -118,13 +92,13 @@ local function LoadSkin()
 	-- same as above except `MovieFrame_OnEvent` and `MovieFrame_OnShow`
 	-- cant be hooked directly so we can just use this
 	-- this is called through `MovieFrame_OnEvent` on the event `PLAY_MOVIE`
-	hooksecurefunc('MovieFrame_PlayMovie', function(self)
-		if self and self.CloseDialog and not self.CloseDialog.template then
-			self:SetScale(_G.UIParent:GetScale())
-			self.CloseDialog:StripTextures()
-			self.CloseDialog:SetTemplate('Transparent')
-			S:HandleButton(self.CloseDialog.ConfirmButton)
-			S:HandleButton(self.CloseDialog.ResumeButton)
+	hooksecurefunc('MovieFrame_PlayMovie', function(s)
+		if s and s.CloseDialog and not s.CloseDialog.template then
+			s:SetScale(_G.UIParent:GetScale())
+			s.CloseDialog:StripTextures()
+			s.CloseDialog:SetTemplate('Transparent')
+			S:HandleButton(s.CloseDialog.ConfirmButton)
+			S:HandleButton(s.CloseDialog.ResumeButton)
 		end
 	end)
 
@@ -153,6 +127,9 @@ local function LoadSkin()
 				hooksecurefunc(_G['StaticPopup'..i], 'UpdateRecapButton', S.UpdateRecapButton)
 			end
 		end)
+		StaticPopup:StripTextures()
+		StaticPopup:SetTemplate('Transparent')
+
 		for j = 1, 4 do
 			local button = StaticPopup['button'..j]
 			S:HandleButton(button)
@@ -167,6 +144,7 @@ local function LoadSkin()
 			anim1:SetTarget(button.shadow)
 			anim2:SetTarget(button.shadow)
 		end
+
 		_G['StaticPopup'..i..'EditBox']:SetFrameLevel(_G['StaticPopup'..i..'EditBox']:GetFrameLevel()+1)
 		S:HandleEditBox(_G['StaticPopup'..i..'EditBox'])
 		S:HandleEditBox(_G['StaticPopup'..i..'MoneyInputFrameGold'])
@@ -243,6 +221,7 @@ local function LoadSkin()
 			local check = _G['DropDownList'..level..'Button'..i..'Check']
 			local uncheck = _G['DropDownList'..level..'Button'..i..'UnCheck']
 			local highlight = _G['DropDownList'..level..'Button'..i..'Highlight']
+			local text = _G['DropDownList'..level..'Button'..i..'NormalText']
 
 			highlight:SetTexture(E.Media.Textures.Highlight)
 			highlight:SetBlendMode('BLEND')
@@ -256,6 +235,8 @@ local function LoadSkin()
 			button.backdrop:Hide()
 
 			if not button.notCheckable then
+				S:HandlePointXY(text, 5)
+
 				uncheck:SetTexture()
 				local _, co = check:GetTexCoord()
 				if co == 0 then
@@ -280,7 +261,6 @@ local function LoadSkin()
 		end
 	end)
 
-
 	local SideDressUpFrame = _G.SideDressUpFrame
 	S:HandleCloseButton(_G.SideDressUpModelCloseButton)
 	SideDressUpFrame:StripTextures()
@@ -300,8 +280,8 @@ local function LoadSkin()
 	StackSplitFrame.bg1:Point('BOTTOMRIGHT', -10, 55)
 	StackSplitFrame.bg1:SetFrameLevel(StackSplitFrame.bg1:GetFrameLevel() - 1)
 
-	-- S:HandleButton(StackSplitFrame.OkayButton)
-	-- S:HandleButton(StackSplitFrame.CancelButton)
+	S:HandleButton(_G.StackSplitOkayButton)
+	S:HandleButton(_G.StackSplitCancelButton)
 
 	local buttons = {StackSplitFrame.LeftButton, StackSplitFrame.RightButton}
 	for _, btn in pairs(buttons) do
@@ -326,4 +306,4 @@ local function LoadSkin()
 	hooksecurefunc('NavBar_AddButton', SkinNavBarButtons)
 end
 
-S:AddCallback('Skin_Misc', LoadSkin)
+S:AddCallback('BlizzardMiscFrames')

@@ -6,6 +6,7 @@ E.Options.args.databars = {
 	type = "group",
 	name = L["DataBars"],
 	childGroups = "tab",
+	order = 2,
 	get = function(info) return E.db.databars[info[#info]] end,
 	set = function(info, value) E.db.databars[info[#info]] = value; end,
 	args = {
@@ -125,6 +126,11 @@ E.Options.args.databars = {
 			type = "group",
 			name = L["Pet Experience"],
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Pet Experience"],
+				},
 				enable = {
 					order = 1,
 					type = "toggle",

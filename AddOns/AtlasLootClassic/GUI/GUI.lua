@@ -29,8 +29,9 @@ local TT_INFO_ENTRY = "|cFFCFCFCF%s:|r %s"
 
 local db
 
-local function UpdateFrames(noPageUpdate)
+local function UpdateFrames(noPageUpdate, forceContentUpdate)
 	local moduleData = AtlasLoot.ItemDB:Get(db.selected[1])
+	if not moduleData then return end
 	local dataID = db.selected[2]
 	local bossID = db.selected[3]
 	if not GUI.frame.contentFrame.shownFrame then
@@ -109,7 +110,17 @@ local function UpdateFrames(noPageUpdate)
 	end
 
 	-- npcID
-	GUI.ItemFrame.npcID = moduleData[dataID].items[bossID].npcID
+	local usedNpcID = moduleData[dataID].items[bossID].npcID
+	if not usedNpcID then
+		usedNpcID = moduleData[dataID].items[bossID].ObjectID
+	end
+	if usedNpcID then
+		if type(moduleData[dataID].items[bossID].npcID) == "table" then
+			GUI.ItemFrame.npcID = usedNpcID[1]
+		else
+			GUI.ItemFrame.npcID = usedNpcID
+		end
+	end
 
 	-- Search
 	if contentFrame.shownFrame and contentFrame.shownFrame.OnSearch then
@@ -162,7 +173,7 @@ local function UpdateFrames(noPageUpdate)
 
 		-- refresh current page
 		if contentFrame.shownFrame and contentFrame.shownFrame.Refresh then
-			contentFrame.shownFrame:Refresh()
+			contentFrame.shownFrame:Refresh(forceContentUpdate)
 		elseif not contentFrame.shownFrame then
 			GUI.ItemFrame:Show()
 		end
@@ -214,15 +225,25 @@ local function FrameOnShow(self)
 	FIRST_SHOW = false
 	if (AtlasLoot.db.enableAutoSelect) then
 		local module, instance, boss = AtlasLoot.Data.AutoSelect:GetCurrrentPlayerData()
-		if module ~= db.selected[1] then
+		local pass = false
+		if module and module ~= db.selected[1] then
 			self.moduleSelect:SetSelected(module)
+			pass = true
 		end
-		if instance ~= db.selected[2] then
+		if ( pass and instance ) or ( instance and instance ~= db.selected[2] ) then
+			if instance ~= db.selected[2] then
+				pass = true
+			else
+				pass = false
+			end
 			self.subCatSelect:SetSelected(instance)
 		end
-		if AtlasLoot.db.enableAutoSelectBoss and boss and boss ~= db.selected[3] then
-			self.boss:SetSelected(boss)
+		if AtlasLoot.db.enableAutoSelectBoss and (pass or (boss and boss ~= db.selected[3])) then
+			self.boss:SetSelected(boss or 1)
+		elseif pass then
+			self.boss:SetSelected(1)
 		end
+		UpdateFrames(false, true) -- force a update
 	end
 end
 

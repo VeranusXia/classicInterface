@@ -42,6 +42,7 @@ end
 function AB:StyleShapeShift()
 	local numForms = GetNumShapeshiftForms()
 	local stance = GetShapeshiftForm()
+	local darkenInactive = self.db.stanceBar.style == 'darkenInactive'
 
 	for i = 1, NUM_STANCE_SLOTS do
 		local buttonName = "ElvUI_StanceBarButton"..i
@@ -53,13 +54,21 @@ function AB:StyleShapeShift()
 		if i <= numForms then
 			local texture, isActive, isCastable, spellID, _ = GetShapeshiftFormInfo(i)
 
-			if self.db.stanceBar.style == 'darkenInactive' then
+			if darkenInactive then
 				_, _, texture = GetSpellInfo(spellID)
 			end
 
 			if not texture then texture = WispSplode end
 
-			button.ICON:SetTexture(texture)
+			if button.ICON then
+				button.ICON:SetTexture(texture)
+
+				if isCastable then
+					button.ICON:SetVertexColor(1.0, 1.0, 1.0)
+				else
+					button.ICON:SetVertexColor(0.4, 0.4, 0.4)
+				end
+			end
 
 			if not button.useMasque then
 				cooldown:SetAlpha(1)
@@ -71,15 +80,15 @@ function AB:StyleShapeShift()
 						button:SetChecked(true)
 					else
 						button.checked:SetColorTexture(1, 1, 1, 0.5)
-						button:SetChecked(self.db.stanceBar.style ~= 'darkenInactive')
+						button:SetChecked(not darkenInactive)
 					end
 				else
 					if numForms == 1 or stance == 0 then
 						button:SetChecked(false)
 					else
-						button:SetChecked(self.db.stanceBar.style == 'darkenInactive')
+						button:SetChecked(darkenInactive)
 						button.checked:SetAlpha(1)
-						if self.db.stanceBar.style == 'darkenInactive' then
+						if darkenInactive then
 							button.checked:SetColorTexture(0, 0, 0, 0.5)
 						else
 							button.checked:SetColorTexture(1, 1, 1, 0.5)
@@ -92,12 +101,6 @@ function AB:StyleShapeShift()
 				else
 					button:SetChecked(false)
 				end
-			end
-
-			if isCastable then
-				button.ICON:SetVertexColor(1.0, 1.0, 1.0)
-			else
-				button.ICON:SetVertexColor(0.4, 0.4, 0.4)
 			end
 		end
 	end
@@ -171,16 +174,6 @@ function AB:PositionAndSizeBarShapeShift()
 	local barHeight = (size * (numColumns * heightMult)) + ((buttonSpacing * (numColumns - 1)) * heightMult) + (buttonSpacing * (heightMult-1)) + ((self.db.stanceBar.backdrop == true and (E.Border + backdropSpacing) or E.Spacing)*2)
 	bar:Width(barWidth)
 	bar:Height(barHeight)
-
-	if self.db.stanceBar.enabled then
-		bar:SetScale(1)
-		bar:SetAlpha(bar.db.alpha)
-		E:EnableMover(bar.mover:GetName())
-	else
-		bar:SetScale(0.0001)
-		bar:SetAlpha(0)
-		E:DisableMover(bar.mover:GetName())
-	end
 
 	local horizontalGrowth, verticalGrowth
 	if point == "TOPLEFT" or point == "TOPRIGHT" then
@@ -256,10 +249,8 @@ function AB:PositionAndSizeBarShapeShift()
 		end
 
 		if i > numButtons then
-			button:SetScale(0.0001)
 			button:SetAlpha(0)
 		else
-			button:SetScale(1)
 			button:SetAlpha(bar.db.alpha)
 		end
 
@@ -279,10 +270,32 @@ function AB:PositionAndSizeBarShapeShift()
 
 		if not button.FlyoutUpdateFunc then
 			self:StyleButton(button, nil, useMasque and true or nil, true)
+
+			if not useMasque then
+				if self.db.stanceBar.style == 'darkenInactive' then
+					button.checked:SetBlendMode('BLEND')
+				else
+					button.checked:SetBlendMode('ADD')
+				end
+			end
 		end
 	end
 
 	if useMasque then MasqueGroup:ReSkin() end
+
+	numButtons = GetNumShapeshiftForms()
+	if self.db.stanceBar.enabled then
+		local visibility = self.db.stanceBar.visibility
+		if visibility and visibility:match('[\n\r]') then
+			visibility = visibility:gsub('[\n\r]','')
+		end
+
+		RegisterStateDriver(bar, "visibility", (numButtons == 0 and "hide") or visibility)
+		E:EnableMover(bar.mover:GetName())
+	else
+		RegisterStateDriver(bar, "visibility", "hide")
+		E:DisableMover(bar.mover:GetName())
+	end
 end
 
 function AB:AdjustMaxStanceButtons(event)
@@ -290,11 +303,6 @@ function AB:AdjustMaxStanceButtons(event)
 		AB.NeedsAdjustMaxStanceButtons = event or true
 		self:RegisterEvent('PLAYER_REGEN_ENABLED')
 		return
-	end
-
-	local visibility = self.db.stanceBar.visibility
-	if visibility and visibility:match('[\n\r]') then
-		visibility = visibility:gsub('[\n\r]','')
 	end
 
 	for i=1, #bar.buttons do
@@ -325,8 +333,6 @@ function AB:AdjustMaxStanceButtons(event)
 	if event == 'UPDATE_SHAPESHIFT_FORMS' then
 		self:StyleShapeShift()
 	end
-
-	RegisterStateDriver(bar, "visibility", (numButtons == 0 and "hide") or visibility)
 end
 
 function AB:UpdateStanceBindings()
