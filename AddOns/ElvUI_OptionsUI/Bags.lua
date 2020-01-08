@@ -582,7 +582,7 @@ E.Options.args.bags = {
 						['bag-2'] = {
 							order = 6,
 							type = "toggle",
-							name = L["Keyring"],
+							name = L["Key Ring"],
 						}
 					},
 					disabled = function() return not E.db.bags.split.player end,

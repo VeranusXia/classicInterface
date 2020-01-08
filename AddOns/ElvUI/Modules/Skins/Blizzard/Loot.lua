@@ -38,8 +38,8 @@ local function UpdateLoots()
 	end
 end
 
-function S:LootFrame()
-	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.loot) then return end
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.loot then return end
 
 	-- Loot history frame
 	local LootHistoryFrame = _G.LootHistoryFrame
@@ -124,12 +124,12 @@ function S:LootFrame()
 		S:HandleItemButton(button, true)
 
 		button.IconBorder:SetTexture()
-		hooksecurefunc(button.IconBorder, 'SetVertexColor', function(s, r, g, b)
-			s:GetParent().backdrop:SetBackdropBorderColor(r, g, b)
-			s:SetTexture()
+		hooksecurefunc(button.IconBorder, 'SetVertexColor', function(self, r, g, b)
+			self:GetParent().backdrop:SetBackdropBorderColor(r, g, b)
+			self:SetTexture()
 		end)
-		hooksecurefunc(button.IconBorder, 'Hide', function(s)
-			s:GetParent().backdrop:SetBackdropBorderColor(unpack(E.media.bordercolor))
+		hooksecurefunc(button.IconBorder, 'Hide', function(self)
+			self:GetParent().backdrop:SetBackdropBorderColor(unpack(E.media.bordercolor))
 		end)
 
 		local point, attachTo, point2, x, y = button:GetPoint()
@@ -141,8 +141,9 @@ function S:LootFrame()
 		local numLootItems = LootFrame.numLootItems
 		--Logic to determine how many items to show per page
 		local numLootToShow = _G.LOOTFRAME_NUMBUTTONS
-		if LootFrame.AutoLootTable then
-			numLootItems = #LootFrame.AutoLootTable
+		local self = LootFrame
+		if self.AutoLootTable then
+			numLootItems = #self.AutoLootTable
 		end
 		if numLootItems > _G.LOOTFRAME_NUMBUTTONS then
 			numLootToShow = numLootToShow - 1 -- make space for the page buttons
@@ -185,7 +186,7 @@ function S:LootFrame()
 		elseif(not UnitIsFriend('player', 'target') and UnitIsDead'target') then
 			self.Title:SetText(UnitName('target'))
 		else
-			s.Title:SetText(LOOT)
+			self.Title:SetText(LOOT)
 		end
 	end)
 
@@ -193,4 +194,4 @@ function S:LootFrame()
 	S:HandleNextPrevButton(_G.LootFrameUpButton)
 end
 
-S:AddCallback('LootFrame')
+S:AddCallback('Skin_Loot', LoadSkin)

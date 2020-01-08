@@ -6,8 +6,8 @@ local S = E:GetModule('Skins')
 local _G = _G
 local select, unpack = select, unpack
 
-function S:HelpFrame()
-	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.help) then return end
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.help then return end
 
 	local frames = {
 		_G.HelpFrameLeftInset,
@@ -143,4 +143,4 @@ function S:HelpFrame()
 	end
 end
 
-S:AddCallback('HelpFrame')
+S:AddCallback('Skin_Help', LoadSkin)

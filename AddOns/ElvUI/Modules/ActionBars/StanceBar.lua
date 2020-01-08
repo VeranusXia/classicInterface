@@ -271,12 +271,10 @@ function AB:PositionAndSizeBarShapeShift()
 		if not button.FlyoutUpdateFunc then
 			self:StyleButton(button, nil, useMasque and true or nil, true)
 
-			if not useMasque then
-				if self.db.stanceBar.style == 'darkenInactive' then
-					button.checked:SetBlendMode('BLEND')
-				else
-					button.checked:SetBlendMode('ADD')
-				end
+			if self.db.stanceBar.style == 'darkenInactive' then
+				button.checked:SetBlendMode('BLEND')
+			else
+				button.checked:SetBlendMode('ADD')
 			end
 		end
 	end

@@ -18,7 +18,6 @@ local RequestBattlefieldScoreData = RequestBattlefieldScoreData
 local UIParentLoadAddOn = UIParentLoadAddOn
 local UnitHasVehicleUI = UnitHasVehicleUI
 local C_UIWidgetManager_GetStatusBarWidgetVisualizationInfo = C_UIWidgetManager.GetStatusBarWidgetVisualizationInfo
-local ERR_NOT_IN_COMBAT = ERR_NOT_IN_COMBAT
 -- GLOBALS: ElvDB
 
 function E:ClassColor(class, usePriestColor)
@@ -108,30 +107,24 @@ function E:IsDispellableByMe(debuffType)
 end
 
 do
-	local function SetOriginalHeight(f)
+	local function SetOriginalHeight()
 		if InCombatLockdown() then
-			E:RegisterEventForObject('PLAYER_REGEN_ENABLED', SetOriginalHeight, SetOriginalHeight)
+			E:RegisterEvent('PLAYER_REGEN_ENABLED', SetOriginalHeight)
 			return
 		end
 
+		E:UnregisterEvent('PLAYER_REGEN_ENABLED')
 		E.UIParent:SetHeight(E.UIParent.origHeight)
-
-		if f == SetOriginalHeight then
-			E:UnregisterEventForObject('PLAYER_REGEN_ENABLED', SetOriginalHeight, SetOriginalHeight)
-		end
 	end
 
-	local function SetModifiedHeight(f)
+	local function SetModifiedHeight()
 		if InCombatLockdown() then
-			E:RegisterEventForObject('PLAYER_REGEN_ENABLED', SetModifiedHeight, SetModifiedHeight)
+			E:RegisterEvent('PLAYER_REGEN_ENABLED', SetModifiedHeight)
 			return
 		end
 
+		E:UnregisterEvent('PLAYER_REGEN_ENABLED')
 		E.UIParent:SetHeight(E.UIParent.origHeight - (_G.OrderHallCommandBar:GetHeight() + E.Border))
-
-		if f == SetModifiedHeight then
-			E:UnregisterEventForObject('PLAYER_REGEN_ENABLED', SetModifiedHeight, SetModifiedHeight)
-		end
 	end
 
 	--This function handles disabling of OrderHall Bar or resizing of ElvUIParent if needed
@@ -140,7 +133,7 @@ do
 			_G.OrderHallCommandBar:UnregisterAllEvents()
 			_G.OrderHallCommandBar:SetScript('OnShow', _G.OrderHallCommandBar.Hide)
 			_G.OrderHallCommandBar:Hide()
-			_G.UIParent:UnregisterEvent('UNIT_AURA') --Only used for OrderHall Bar
+			_G.UIParent:UnregisterEvent('UNIT_AURA')--Only used for OrderHall Bar
 		elseif E.global.general.commandBarSetting == 'ENABLED_RESIZEPARENT' then
 			_G.OrderHallCommandBar:HookScript('OnShow', SetModifiedHeight)
 			_G.OrderHallCommandBar:HookScript('OnHide', SetOriginalHeight)
@@ -299,41 +292,32 @@ function E:Dump(object, inspect)
 end
 
 function E:AddNonPetBattleFrames()
-	if InCombatLockdown() then
-		E:UnregisterEventForObject('PLAYER_REGEN_DISABLED', E.AddNonPetBattleFrames, E.AddNonPetBattleFrames)
-		return
-	elseif E:IsEventRegisteredForObject('PLAYER_REGEN_DISABLED', E.AddNonPetBattleFrames) then
-		E:UnregisterEventForObject('PLAYER_REGEN_DISABLED', E.AddNonPetBattleFrames, E.AddNonPetBattleFrames)
-	end
-
+	if InCombatLockdown() then return end
 	for object, data in pairs(E.FrameLocks) do
+		local obj = _G[object] or object
 		local parent, strata
 		if type(data) == 'table' then
 			parent, strata = data.parent, data.strata
 		elseif data == true then
 			parent = _G.UIParent
 		end
-
-		local obj = _G[object] or object
 		obj:SetParent(parent)
 		if strata then
 			obj:SetFrameStrata(strata)
 		end
 	end
+
+	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
 end
 
 function E:RemoveNonPetBattleFrames()
-	if InCombatLockdown() then
-		E:RegisterEventForObject('PLAYER_REGEN_DISABLED', E.RemoveNonPetBattleFrames, E.RemoveNonPetBattleFrames)
-		return
-	elseif E:IsEventRegisteredForObject('PLAYER_REGEN_DISABLED', E.RemoveNonPetBattleFrames) then
-		E:UnregisterEventForObject('PLAYER_REGEN_DISABLED', E.RemoveNonPetBattleFrames, E.RemoveNonPetBattleFrames)
-	end
-
+	if InCombatLockdown() then return end
 	for object in pairs(E.FrameLocks) do
 		local obj = _G[object] or object
 		obj:SetParent(E.HiddenFrame)
 	end
+
+	self:RegisterEvent('PLAYER_REGEN_DISABLED', 'AddNonPetBattleFrames')
 end
 
 function E:RegisterObjectForVehicleLock(object, originalParent)
@@ -429,38 +413,6 @@ function E:PLAYER_REGEN_ENABLED()
 
 		self.CVarUpdate = nil
 	end
-
-	if self.ShowOptionsUI then
-		self:ToggleOptionsUI()
-
-		self.ShowOptionsUI = nil
-	end
-end
-
-function E:PLAYER_REGEN_DISABLED()
-	local err
-
-	if IsAddOnLoaded('ElvUI_OptionsUI') then
-		local ACD = self.Libs.AceConfigDialog
-		if ACD and ACD.OpenFrames and ACD.OpenFrames.ElvUI then
-			ACD:Close('ElvUI')
-			err = true
-		end
-	end
-
-	if self.CreatedMovers then
-		for name in pairs(self.CreatedMovers) do
-			local mover = _G[name]
-			if mover and mover:IsShown() then
-				mover:Hide()
-				err = true
-			end
-		end
-	end
-
-	if err then
-		self:Print(ERR_NOT_IN_COMBAT)
-	end
 end
 
 function E:PLAYER_LEVEL_UP(_, level)
@@ -468,11 +420,10 @@ function E:PLAYER_LEVEL_UP(_, level)
 end
 
 function E:LoadAPI()
-	E:RegisterEvent('PLAYER_LEVEL_UP')
-	E:RegisterEvent('PLAYER_ENTERING_WORLD')
-	E:RegisterEvent('PLAYER_REGEN_ENABLED')
-	E:RegisterEvent('PLAYER_REGEN_DISABLED')
-	E:RegisterEvent('UI_SCALE_CHANGED', 'PixelScaleChanged')
+	self:RegisterEvent('PLAYER_LEVEL_UP')
+	self:RegisterEvent('PLAYER_ENTERING_WORLD')
+	self:RegisterEvent('PLAYER_REGEN_ENABLED')
+	self:RegisterEvent('UI_SCALE_CHANGED', 'PixelScaleChanged')
 
 	do -- setup cropIcon texCoords
 		local opt = E.db.general.cropIcon

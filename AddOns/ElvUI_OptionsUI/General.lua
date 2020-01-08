@@ -9,7 +9,6 @@ local AFK = E:GetModule('AFK')
 
 local _G = _G
 local IsAddOnLoaded = IsAddOnLoaded
-local IsMouseButtonDown = IsMouseButtonDown
 local FCF_GetNumActiveChatFrames = FCF_GetNumActiveChatFrames
 
 local function GetChatWindowInfo()
@@ -56,7 +55,7 @@ E.Options.args.general = {
 					name = L["Auto Scale"],
 					func = function()
 						E.global.general.UIScale = E:PixelBestSize()
-						E:PixelScaleChanged()
+						E:StaticPopup_Show("UISCALE_CHANGE")
 					end,
 				},
 				UIScale = {
@@ -68,9 +67,7 @@ E.Options.args.general = {
 					get = function(info) return E.global.general.UIScale end,
 					set = function(info, value)
 						E.global.general.UIScale = value
-						if not IsMouseButtonDown() then
-							E:PixelScaleChanged()
-						end
+						E:StaticPopup_Show("UISCALE_CHANGE")
 					end
 				},
 				pixelPerfect = {
@@ -481,24 +478,26 @@ E.Options.args.general = {
 					get = function(info) return E.private.general.raidUtility end,
 					set = function(info, value) E.private.general.raidUtility = value; E:StaticPopup_Show("PRIVATE_RL") end
 				},
+				DurabilityGroup = {
+					order = 7,
+					type = "group",
+					name = L["Durability"],
+					guiInline = true,
+					get = function(info) return E.db.general.durabilityScale end,
+					set = function(info, value) E.db.general.durabilityScale = value; E:StaticPopup_Show("PRIVATE_RL") end,
+					args = {
+						scale = {
+							order = 1,
+							type = "range",
+							name = L["Scale"],
+							min = 0.5, max = 8, step = 0.5,
+						}
+					}
+				},
 				objectiveTracker = {
 					order = 8,
 					type = 'toggle',
 					name = L["ObjectiveTracker Enhancements"],
-				},
-				resurrectSound = {
-					order = 9,
-					type = 'toggle',
-					name = L["Resurrect Sound"],
-					desc = L["Enable to hear sound if you receive a resurrect."],
-				},
-				durabilityScale = {
-					order = 10,
-					type = "range",
-					name = L["Durability Scale"],
-					min = 0.5, max = 8, step = 0.5,
-					get = function(info) return E.db.general.durabilityScale end,
-					set = function(info, value) E.db.general.durabilityScale = value; E:StaticPopup_Show("PRIVATE_RL") end,
 				},
 --[=[
 				itemLevelInfo = {

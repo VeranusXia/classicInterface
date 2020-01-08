@@ -607,9 +607,8 @@ local function SetPage(PageNum)
 		InstallSlider:SetValue(value)
 		InstallSlider.Cur:SetText(value)
 		InstallSlider:SetScript('OnValueChanged', function(self)
-			local val = E:Round(self:GetValue(), 2)
-			E.global.general.UIScale = val
-			InstallSlider.Cur:SetText(val)
+			E.global.general.UIScale =  self:GetValue()
+			InstallSlider.Cur:SetText(E.global.general.UIScale)
 		end)
 
 		InstallSlider.Min:SetText(0.4)
@@ -628,7 +627,9 @@ local function SetPage(PageNum)
 
 		InstallOption1Button:SetText(L["Auto Scale"])
 		InstallOption2Button:Show()
-		InstallOption2Button:SetScript('OnClick', E.PixelScaleChanged)
+		InstallOption2Button:SetScript('OnClick', function()
+			E:PixelScaleChanged(nil, true)
+		end)
 
 		InstallOption2Button:SetText(L["Preview"])
 		f.Desc3:SetText(L["Importance: |cff07D400High|r"])

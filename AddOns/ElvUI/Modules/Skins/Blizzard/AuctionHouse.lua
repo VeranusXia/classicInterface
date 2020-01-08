@@ -11,8 +11,8 @@ local CreateFrame = CreateFrame
 local GetAuctionSellItemInfo = GetAuctionSellItemInfo
 local GetItemQualityColor = GetItemQualityColor
 
-function S:Blizzard_AuctionUI()
-	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.auctionhouse) then return end
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.auctionhouse then return end
 
 	local AuctionFrame = _G.AuctionFrame
 	AuctionFrame:StripTextures(true)
@@ -290,4 +290,4 @@ function S:Blizzard_AuctionUI()
 	AuctionFrameBid.Background:SetFrameLevel(AuctionFrameBid:GetFrameLevel() - 1)
 end
 
-S:AddCallbackForAddon('Blizzard_AuctionUI')
+S:AddCallbackForAddon('Blizzard_AuctionUI', 'Skin_Blizzard_AuctionUI', LoadSkin)

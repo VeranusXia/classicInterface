@@ -6,9 +6,9 @@ local Search = E.Libs.ItemSearch
 
 --Lua functions
 local _G = _G
-local type, ipairs, next, unpack, select, pcall = type, ipairs, next, unpack, select, pcall
+local type, ipairs, pairs, unpack, select, pcall = type, ipairs, pairs, unpack, select, pcall
 local tinsert, tremove, twipe, tmaxn = tinsert, tremove, wipe, table.maxn
-local floor, ceil, abs = floor, ceil, abs
+local floor, abs = floor, abs
 local format, sub = format, strsub
 --WoW API / Variables
 local BankFrameItemButton_Update = BankFrameItemButton_Update
@@ -40,9 +40,6 @@ local SetItemButtonTexture = SetItemButtonTexture
 local SetItemButtonTextureVertexColor = SetItemButtonTextureVertexColor
 local ToggleFrame = ToggleFrame
 local UseContainerItem = UseContainerItem
-local PutItemInBackpack = PutItemInBackpack
-local CursorHasItem = CursorHasItem
-local PutKeyInKeyRing = PutKeyInKeyRing
 
 local C_NewItems_IsNewItem = C_NewItems.IsNewItem
 local C_NewItems_RemoveNewItem = C_NewItems.RemoveNewItem
@@ -63,8 +60,6 @@ local LE_ITEM_CLASS_QUESTITEM = LE_ITEM_CLASS_QUESTITEM
 local SEARCH = SEARCH
 -- GLOBALS: ElvUIBags, ElvUIBagMover, ElvUIBankMover
 
-local GameTooltip = _G.GameTooltip
-
 local SEARCH_STRING = ""
 
 function B:GetContainerFrame(arg)
@@ -84,6 +79,7 @@ function B:GetContainerFrame(arg)
 end
 
 function B:Tooltip_Show()
+	local GameTooltip = _G.GameTooltip
 	GameTooltip:SetOwner(self)
 	GameTooltip:ClearLines()
 	GameTooltip:AddLine(self.ttText)
@@ -178,22 +174,20 @@ function B:SetSearch(query)
 		query = Search.Filters.tipPhrases.keywords[query]
 	end
 
-	for _, bagFrame in next, B.BagFrames do
+	for _, bagFrame in pairs(B.BagFrames) do
 		for _, bagID in ipairs(bagFrame.BagIDs) do
 			for slotID = 1, GetContainerNumSlots(bagID) do
 				local _, _, _, _, _, _, link = GetContainerItemInfo(bagID, slotID)
-				local button = bagFrame.Bags[bagID] and bagFrame.Bags[bagID][slotID]
-				if button then
-					local success, result = pcall(method, Search, link, query)
-					if empty or (success and result) then
-						SetItemButtonDesaturated(button, button.locked or button.junkDesaturate)
-						button.searchOverlay:Hide()
-						button:SetAlpha(1)
-					else
-						SetItemButtonDesaturated(button, 1)
-						button.searchOverlay:Show()
-						button:SetAlpha(0.5)
-					end
+				local button = bagFrame.Bags[bagID][slotID]
+				local success, result = pcall(method, Search, link, query)
+				if empty or (success and result) then
+					SetItemButtonDesaturated(button, button.locked or button.junkDesaturate)
+					button.searchOverlay:Hide()
+					button:SetAlpha(1)
+				else
+					SetItemButtonDesaturated(button, 1)
+					button.searchOverlay:Show()
+					button:SetAlpha(0.5)
 				end
 			end
 		end
@@ -202,7 +196,7 @@ end
 
 function B:UpdateItemLevelDisplay()
 	if E.private.bags.enable ~= true then return end
-	for _, bagFrame in next, B.BagFrames do
+	for _, bagFrame in pairs(B.BagFrames) do
 		for _, bagID in ipairs(bagFrame.BagIDs) do
 			for slotID = 1, GetContainerNumSlots(bagID) do
 				local slot = bagFrame.Bags[bagID][slotID]
@@ -219,7 +213,7 @@ end
 function B:UpdateCountDisplay()
 	if E.private.bags.enable ~= true then return end
 
-	for _, bagFrame in next, B.BagFrames do
+	for _, bagFrame in pairs(B.BagFrames) do
 		for _, bagID in ipairs(bagFrame.BagIDs) do
 			for slotID = 1, GetContainerNumSlots(bagID) do
 				local slot = bagFrame.Bags[bagID][slotID]
@@ -245,7 +239,7 @@ end
 function B:UpdateAllBagSlots()
 	if E.private.bags.enable ~= true then return end
 
-	for _, bagFrame in next, B.BagFrames do
+	for _, bagFrame in pairs(B.BagFrames) do
 		B:UpdateAllSlots(bagFrame)
 	end
 end
@@ -330,7 +324,7 @@ function B:UpdateSlot(frame, bagID, slotID)
 
 	local slot = frame.Bags[bagID][slotID]
 	local bagType = frame.Bags[bagID].type
-	local keyring = (bagID == -2)
+
 	local texture, count, locked, rarity, readable, _, itemLink, _, noValue, itemID = GetContainerItemInfo(bagID, slotID)
 	slot.name, slot.rarity, slot.locked = nil, rarity, locked
 
@@ -348,14 +342,6 @@ function B:UpdateSlot(frame, bagID, slotID)
 	SetItemButtonCount(slot, count)
 	SetItemButtonDesaturated(slot, slot.locked or slot.junkDesaturate)
 
-	if keyring then
-		if texture then
-			slot.keyringTexture:Hide()
-		else
-			slot.keyringTexture:Show()
-		end
-	end
-
 	local color = E.db.bags.countFontColor
 	slot.Count:SetTextColor(color.r, color.g, color.b)
 
@@ -367,10 +353,10 @@ function B:UpdateSlot(frame, bagID, slotID)
 		end
 	end
 
-	slot.itemLevel:SetText()
-	slot.bindType:SetText()
+	slot.itemLevel:SetText('')
+	slot.bindType:SetText('')
 
-	local professionColors = keyring and B.KeyRingColor or B.ProfessionColors[bagType]
+	local professionColors = B.ProfessionColors[bagType]
 	local showItemLevel = B.db.itemLevel and clink and not professionColors
 	local showBindType = B.db.showBindType and (slot.rarity and slot.rarity > LE_ITEM_QUALITY_COMMON)
 
@@ -516,12 +502,10 @@ function B:UpdateCooldowns(frame)
 	if not (frame and frame.BagIDs) then return end
 
 	for _, bagID in ipairs(frame.BagIDs) do
-		if bagID ~= -2 then
-			for slotID = 1, GetContainerNumSlots(bagID) do
-				if GetContainerItemInfo(bagID, slotID) then
-					local start, duration, enable = GetContainerItemCooldown(bagID, slotID)
-					CooldownFrame_Set(frame.Bags[bagID][slotID].cooldown, start, duration, enable)
-				end
+		for slotID = 1, GetContainerNumSlots(bagID) do
+			if GetContainerItemInfo(bagID, slotID) then
+				local start, duration, enable = GetContainerItemCooldown(bagID, slotID)
+				CooldownFrame_Set(frame.Bags[bagID][slotID].cooldown, start, duration, enable)
 			end
 		end
 	end
@@ -539,17 +523,20 @@ function B:UpdateAllSlots(frame)
 	if not frame.registerUpdate and B:IsSearching() then
 		B:RefreshSearch()
 	end
-
-	B:HandleKeyRing()
 end
 
 function B:SetSlotAlphaForBag(f)
 	for _, bagID in ipairs(f.BagIDs) do
 		if f.Bags[bagID] then
-			if bagID == self.id then
-				f.Bags[bagID]:SetAlpha(1)
-			else
-				f.Bags[bagID]:SetAlpha(0.1)
+			local numSlots = GetContainerNumSlots(bagID)
+			for slotID = 1, numSlots do
+				if f.Bags[bagID][slotID] then
+					if bagID == self.id then
+						f.Bags[bagID][slotID]:SetAlpha(1)
+					else
+						f.Bags[bagID][slotID]:SetAlpha(0.1)
+					end
+				end
 			end
 		end
 	end
@@ -558,7 +545,12 @@ end
 function B:ResetSlotAlphaForBags(f)
 	for _, bagID in ipairs(f.BagIDs) do
 		if f.Bags[bagID] then
-			f.Bags[bagID]:SetAlpha(1)
+			local numSlots = GetContainerNumSlots(bagID)
+			for slotID = 1, numSlots do
+				if f.Bags[bagID][slotID] then
+					f.Bags[bagID][slotID]:SetAlpha(1)
+				end
+			end
 		end
 	end
 end
@@ -570,20 +562,25 @@ function B:Layout(isBank)
 	if not f then return end
 
 	local buttonSize = isBank and B.db.bankSize or B.db.bagSize
-	local buttonSpacing = E.Border * 2
+	local buttonSpacing = E.Border*2
 	local containerWidth = ((isBank and B.db.bankWidth) or B.db.bagWidth)
 	local numContainerColumns = floor(containerWidth / (buttonSize + buttonSpacing))
 	local holderWidth = ((buttonSize + buttonSpacing) * numContainerColumns) - buttonSpacing
-	local numContainerRows, numBags, numBagSlots = 0, 0, 0
+	local numContainerRows = 0
+	local numBags = 0
+	local numBagSlots = 0
 	local bagSpacing = B.db.split.bagSpacing
+	local countColor = E.db.bags.countFontColor
 	local isSplit = B.db.split[isBank and 'bank' or 'player']
-	local lastButton, lastRowButton, lastContainerButton, newBag
-	local numContainerSlots = isBank and GetNumBankSlots() or 6
+
+	f.holderFrame:Width(holderWidth)
 
 	f.totalSlots = 0
-	f.holderFrame:Width(holderWidth)
-	f.ContainerHolder:Size(((buttonSize + buttonSpacing) * numContainerSlots) + buttonSpacing, buttonSize + (buttonSpacing * 2))
-
+	local lastButton
+	local lastRowButton
+	local lastContainerButton
+	local numContainerSlots = GetNumBankSlots()
+	local newBag
 	for i, bagID in ipairs(f.BagIDs) do
 		if isSplit then
 			newBag = (bagID ~= -1 or bagID ~= 0) and B.db.split['bag'..bagID] or false
@@ -591,6 +588,54 @@ function B:Layout(isBank)
 
 		--Bag Containers
 		if (not isBank) or (isBank and bagID ~= -1 and numContainerSlots >= 1 and not (i - 1 > numContainerSlots)) then
+			if not f.ContainerHolder[i] then
+				if isBank then
+					f.ContainerHolder[i] = CreateFrame("CheckButton", "ElvUIBankBag" .. (bagID-4), f.ContainerHolder, "BankItemButtonBagTemplate")
+				else
+					if bagID == 0 then --Backpack needs different setup
+						f.ContainerHolder[i] = CreateFrame("CheckButton", "ElvUIMainBagBackpack", f.ContainerHolder, "ItemButtonTemplate, ItemAnimTemplate")
+						f.ContainerHolder[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+					elseif bagID == -2 then
+						f.ContainerHolder[i] = CreateFrame("CheckButton", "ElvUIKeyRing", f.ContainerHolder, "ItemButtonTemplate, ItemAnimTemplate")
+						f.ContainerHolder[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+						f.ContainerHolder[i]:SetScript('OnReceiveDrag', function()
+							if (CursorHasItem()) then
+								PutKeyInKeyRing();
+							end
+						end)
+					else
+						f.ContainerHolder[i] = CreateFrame("CheckButton", "ElvUIMainBag" .. (bagID-1) .. "Slot", f.ContainerHolder, "BagSlotButtonTemplate")
+					end
+				end
+
+				f.ContainerHolder[i]:SetTemplate(E.db.bags.transparent and 'Transparent', true)
+				f.ContainerHolder[i]:StyleButton()
+				f.ContainerHolder[i]:SetNormalTexture("")
+				f.ContainerHolder[i]:SetPushedTexture("")
+				f.ContainerHolder[i]:SetCheckedTexture(nil)
+				f.ContainerHolder[i].id = bagID
+				f.ContainerHolder[i]:HookScript("OnEnter", function(ch) B.SetSlotAlphaForBag(ch, f) end)
+				f.ContainerHolder[i]:HookScript("OnLeave", function(ch) B.ResetSlotAlphaForBags(ch, f) end)
+
+				if isBank then
+					f.ContainerHolder[i]:SetID(bagID - 4)
+					if not f.ContainerHolder[i].tooltipText then
+						f.ContainerHolder[i].tooltipText = ""
+					end
+				end
+
+				f.ContainerHolder[i].iconTexture = _G[f.ContainerHolder[i]:GetName()..'IconTexture']
+				f.ContainerHolder[i].iconTexture:SetInside()
+				f.ContainerHolder[i].iconTexture:SetTexCoord(unpack(E.TexCoords))
+				if bagID == 0 then --backpack
+					f.ContainerHolder[i].iconTexture:SetTexture("Interface/AddOns/ElvUI/Media/Textures/Button-Backpack-Up")
+				elseif bagID == -2 then --keyring
+					f.ContainerHolder[i].iconTexture:SetTexture("Interface/ICONS/INV_Misc_Key_03")
+				end
+			end
+
+			f.ContainerHolder:Size(((buttonSize + buttonSpacing) * (isBank and i - 1 or i)) + buttonSpacing,buttonSize + (buttonSpacing * 2))
+
 			if isBank then
 				BankFrameItemButton_Update(f.ContainerHolder[i])
 				BankFrameItemButton_UpdateLocked(f.ContainerHolder[i])
@@ -598,7 +643,6 @@ function B:Layout(isBank)
 
 			f.ContainerHolder[i]:Size(buttonSize)
 			f.ContainerHolder[i]:ClearAllPoints()
-
 			if (isBank and i == 2) or (not isBank and i == 1) then
 				f.ContainerHolder[i]:Point('BOTTOMLEFT', f.ContainerHolder, 'BOTTOMLEFT', buttonSpacing, buttonSpacing)
 			else
@@ -610,25 +654,104 @@ function B:Layout(isBank)
 
 		--Bag Slots
 		local numSlots = GetContainerNumSlots(bagID)
-		f.Bags[bagID].numSlots = numSlots
-
 		if numSlots > 0 then
-			f.Bags[bagID]:Show()
-
-			--Hide unused slots
-			for y = numSlots + 1, MAX_CONTAINER_ITEMS do
-				if f.Bags[bagID][y] then f.Bags[bagID][y]:Hide() end
+			if not f.Bags[bagID] then
+				f.Bags[bagID] = CreateFrame('Frame', f:GetName()..'Bag'..bagID, f.holderFrame)
+				f.Bags[bagID]:SetID(bagID)
 			end
 
-			f.Bags[bagID].type = select(2, GetContainerNumFreeSlots(bagID))
+			f.Bags[bagID].numSlots = numSlots
+			f.Bags[bagID].type = GetItemFamily(GetBagName(bagID))
+
+			--Hide unused slots
+			for y = 1, MAX_CONTAINER_ITEMS do
+				if f.Bags[bagID][y] then
+					f.Bags[bagID][y]:Hide()
+				end
+			end
 
 			for slotID = 1, numSlots do
 				f.totalSlots = f.totalSlots + 1
+				if not f.Bags[bagID][slotID] then
+					f.Bags[bagID][slotID] = CreateFrame("CheckButton", f.Bags[bagID]:GetName()..'Slot'..slotID, f.Bags[bagID], bagID == -1 and 'BankItemButtonGenericTemplate' or 'ContainerFrameItemButtonTemplate');
+					f.Bags[bagID][slotID]:StyleButton()
+					f.Bags[bagID][slotID]:SetTemplate(E.db.bags.transparent and 'Transparent', true)
+					f.Bags[bagID][slotID]:SetNormalTexture(nil)
+					f.Bags[bagID][slotID]:SetCheckedTexture(nil)
+
+					if _G[f.Bags[bagID][slotID]:GetName()..'NewItemTexture'] then
+						_G[f.Bags[bagID][slotID]:GetName()..'NewItemTexture']:Hide()
+					end
+
+					f.Bags[bagID][slotID].Count:ClearAllPoints()
+					f.Bags[bagID][slotID].Count:Point('BOTTOMRIGHT', 0, 2)
+					f.Bags[bagID][slotID].Count:FontTemplate(E.Libs.LSM:Fetch("font", E.db.bags.countFont), E.db.bags.countFontSize, E.db.bags.countFontOutline)
+					f.Bags[bagID][slotID].Count:SetTextColor(countColor.r, countColor.g, countColor.b)
+
+					if not(f.Bags[bagID][slotID].questIcon) then
+						f.Bags[bagID][slotID].questIcon = _G[f.Bags[bagID][slotID]:GetName()..'IconQuestTexture'] or _G[f.Bags[bagID][slotID]:GetName()].IconQuestTexture
+						f.Bags[bagID][slotID].questIcon:SetTexture(E.Media.Textures.BagQuestIcon)
+						f.Bags[bagID][slotID].questIcon:SetTexCoord(0,1,0,1)
+						f.Bags[bagID][slotID].questIcon:SetInside()
+						f.Bags[bagID][slotID].questIcon:Hide()
+					end
+
+					if f.Bags[bagID][slotID].UpgradeIcon then
+						f.Bags[bagID][slotID].UpgradeIcon:SetTexture(E.Media.Textures.BagUpgradeIcon)
+						f.Bags[bagID][slotID].UpgradeIcon:SetTexCoord(0,1,0,1)
+						f.Bags[bagID][slotID].UpgradeIcon:SetInside()
+						f.Bags[bagID][slotID].UpgradeIcon:Hide()
+					end
+
+					--.JunkIcon only exists for items created through ContainerFrameItemButtonTemplate
+					if not f.Bags[bagID][slotID].JunkIcon then
+						local JunkIcon = f.Bags[bagID][slotID]:CreateTexture(nil, "OVERLAY")
+						JunkIcon:SetAtlas("bags-junkcoin", true)
+						JunkIcon:Point("TOPLEFT", 1, 0)
+						JunkIcon:Hide()
+						f.Bags[bagID][slotID].JunkIcon = JunkIcon
+					end
+
+					f.Bags[bagID][slotID].iconTexture = _G[f.Bags[bagID][slotID]:GetName()..'IconTexture']
+					f.Bags[bagID][slotID].iconTexture:SetInside(f.Bags[bagID][slotID])
+					f.Bags[bagID][slotID].iconTexture:SetTexCoord(unpack(E.TexCoords))
+
+					f.Bags[bagID][slotID].searchOverlay:SetAllPoints()
+					f.Bags[bagID][slotID].cooldown = _G[f.Bags[bagID][slotID]:GetName()..'Cooldown']
+					f.Bags[bagID][slotID].cooldown.CooldownOverride = 'bags'
+					E:RegisterCooldown(f.Bags[bagID][slotID].cooldown)
+					f.Bags[bagID][slotID].bagID = bagID
+					f.Bags[bagID][slotID].slotID = slotID
+
+					f.Bags[bagID][slotID].itemLevel = f.Bags[bagID][slotID]:CreateFontString(nil, 'OVERLAY')
+					f.Bags[bagID][slotID].itemLevel:Point("BOTTOMRIGHT", 0, 2)
+					f.Bags[bagID][slotID].itemLevel:FontTemplate(E.Libs.LSM:Fetch("font", E.db.bags.itemLevelFont), E.db.bags.itemLevelFontSize, E.db.bags.itemLevelFontOutline)
+
+					f.Bags[bagID][slotID].bindType = f.Bags[bagID][slotID]:CreateFontString(nil, 'OVERLAY')
+					f.Bags[bagID][slotID].bindType:Point("TOP", 0, -2)
+					f.Bags[bagID][slotID].bindType:FontTemplate(E.Libs.LSM:Fetch("font", E.db.bags.itemLevelFont), E.db.bags.itemLevelFontSize, E.db.bags.itemLevelFontOutline)
+
+					if f.Bags[bagID][slotID].BattlepayItemTexture then
+						f.Bags[bagID][slotID].BattlepayItemTexture:Hide()
+					end
+
+					if not f.Bags[bagID][slotID].newItemGlow then
+						local newItemGlow = f.Bags[bagID][slotID]:CreateTexture(nil, "OVERLAY")
+						newItemGlow:SetInside()
+						newItemGlow:SetTexture(E.Media.Textures.BagNewItemGlow)
+						newItemGlow:Hide()
+						B.BagFrame.NewItemGlow.Fade:AddChild(newItemGlow)
+						f.Bags[bagID][slotID].newItemGlow = newItemGlow
+						f.Bags[bagID][slotID]:HookScript('OnEnter', B.HideSlotItemGlow)
+					end
+				end
 
 				f.Bags[bagID][slotID]:SetID(slotID)
 				f.Bags[bagID][slotID]:Size(buttonSize)
 
-				f.Bags[bagID][slotID].JunkIcon:Size(buttonSize / 2)
+				if f.Bags[bagID][slotID].JunkIcon then
+					f.Bags[bagID][slotID].JunkIcon:Size(buttonSize/2)
+				end
 
 				B:UpdateSlot(f, bagID, slotID)
 
@@ -640,13 +763,18 @@ function B:Layout(isBank)
 					local anchorPoint, relativePoint = (B.db.reverseSlots and 'BOTTOM' or 'TOP'), (B.db.reverseSlots and 'TOP' or 'BOTTOM')
 					if isSplit and newBag and slotID == 1 then
 						f.Bags[bagID][slotID]:Point(anchorPoint, lastRowButton, relativePoint, 0, B.db.reverseSlots and (buttonSpacing + bagSpacing) or -(buttonSpacing + bagSpacing))
-						lastRowButton, numContainerRows, numBags, numBagSlots = f.Bags[bagID][slotID], numContainerRows + 1, numBags + 1, 0
+						lastRowButton = f.Bags[bagID][slotID]
+						numContainerRows = numContainerRows + 1
+						numBags = numBags + 1
+						numBagSlots = 0
 					elseif isSplit and numBagSlots % numContainerColumns == 0 then
 						f.Bags[bagID][slotID]:Point(anchorPoint, lastRowButton, relativePoint, 0, B.db.reverseSlots and buttonSpacing or -buttonSpacing)
-						lastRowButton, numContainerRows = f.Bags[bagID][slotID], numContainerRows + 1
+						lastRowButton = f.Bags[bagID][slotID]
+						numContainerRows = numContainerRows + 1
 					elseif (not isSplit) and (f.totalSlots - 1) % numContainerColumns == 0 then
 						f.Bags[bagID][slotID]:Point(anchorPoint, lastRowButton, relativePoint, 0, B.db.reverseSlots and buttonSpacing or -buttonSpacing)
-						lastRowButton, numContainerRows = f.Bags[bagID][slotID], numContainerRows + 1
+						lastRowButton = f.Bags[bagID][slotID]
+						numContainerRows = numContainerRows + 1
 					else
 						anchorPoint, relativePoint = (B.db.reverseSlots and 'RIGHT' or 'LEFT'), (B.db.reverseSlots and 'LEFT' or 'RIGHT')
 						f.Bags[bagID][slotID]:Point(anchorPoint, lastButton, relativePoint, B.db.reverseSlots and -buttonSpacing or buttonSpacing, 0)
@@ -662,12 +790,23 @@ function B:Layout(isBank)
 				numBagSlots = numBagSlots + 1
 			end
 		else
-			f.Bags[bagID]:Hide()
-		end
-	end
+			--Hide unused slots
+			for y = 1, MAX_CONTAINER_ITEMS do
+				if f.Bags[bagID] and f.Bags[bagID][y] then
+					f.Bags[bagID][y]:Hide()
+				end
+			end
 
-	if (not isBank) and (not B.ShowKeyRing) then
-		numContainerRows = ceil((f.totalSlots - GetContainerNumSlots(-2)) / numContainerColumns)
+			if f.Bags[bagID] then
+				f.Bags[bagID].numSlots = numSlots
+			end
+
+			local container = isBank and f.ContainerHolder[i]
+			if container then
+				BankFrameItemButton_Update(container)
+				BankFrameItemButton_UpdateLocked(container)
+			end
+		end
 	end
 
 	f:Size(containerWidth, (((buttonSize + buttonSpacing) * numContainerRows) - buttonSpacing) + (isSplit and (numBags * bagSpacing) or 0 ) + f.topOffset + f.bottomOffset); -- 8 is the cussion of the f.holderFrame
@@ -811,37 +950,24 @@ end
 
 function B:HandleKeyRing()
 	if B.BagFrame then
-		if B.ShowKeyRing then
-			B:KeyRing_Open()
-		else
-			B:KeyRing_Close()
+		for y = 1, MAX_CONTAINER_ITEMS do
+			if B.BagFrame.Bags[-2] and B.BagFrame.Bags[-2][y] then
+				if B.BagFrame.Bags[-2][y]:IsShown() then
+					B.BagFrame.Bags[-2][y]:Hide()
+				else
+					B.BagFrame.Bags[-2][y]:Show()
+				end
+			end
 		end
 	end
 end
 
-function B:KeyRing_Open()
-	if B.BagFrame then
-		B:Layout()
-		B.BagFrame.Bags[-2]:Show()
-	end
-end
-
-function B:KeyRing_Close()
-	GameTooltip_Hide()
-
-	if B.BagFrame then
-		B:Layout()
-		B.BagFrame.Bags[-2]:Hide()
-	end
-end
-
-function B:ConstructContainerFrame(name, isBank)
+function B:ContructContainerFrame(name, isBank)
 	local strata = E.db.bags.strata or 'HIGH'
 
 	local f = CreateFrame('Button', name, E.UIParent)
 	f:SetTemplate('Transparent')
 	f:SetFrameStrata(strata)
-	B:SetupItemGlow(f)
 
 	f.events = isBank and { "BANK_BAG_SLOT_FLAGS_UPDATED", "PLAYERBANKSLOTS_CHANGED" } or { "ITEM_LOCK_CHANGED", "BAG_SLOT_FLAGS_UPDATED", "QUEST_ACCEPTED", "QUEST_REMOVED" }
 
@@ -869,6 +995,7 @@ function B:ConstructContainerFrame(name, isBank)
 	f:SetScript("OnClick", function(frame) if IsControlKeyDown() then B.PostBagMove(frame.mover) end end)
 	f:SetScript("OnLeave", GameTooltip_Hide)
 	f:SetScript("OnEnter", function(frame)
+		local GameTooltip = _G.GameTooltip
 		GameTooltip:SetOwner(frame, "ANCHOR_TOPLEFT", 0, 4)
 		GameTooltip:ClearLines()
 		GameTooltip:AddDoubleLine(L["Hold Shift + Drag:"], L["Temporary Move"], 1, 1, 1)
@@ -890,75 +1017,6 @@ function B:ConstructContainerFrame(name, isBank)
 	f.ContainerHolder:SetTemplate('Transparent')
 	f.ContainerHolder:Hide()
 
-	for i, bagID in next, f.BagIDs do
-		local bagName = isBank and format("ElvUIBankBag%d", bagID-4) or bagID == 0 and "ElvUIMainBagBackpack" or bagID == -2 and "ElvUIKeyRing" or format("ElvUIMainBag%dSlot", bagID-1)
-		local inherit = isBank and "BankItemButtonBagTemplate" or (bagID == 0 or bagID == -2) and "ItemButtonTemplate, ItemAnimTemplate" or "BagSlotButtonTemplate"
-
-		f.ContainerHolder[i] = CreateFrame("CheckButton", bagName, f.ContainerHolder, inherit)
-		f.ContainerHolder[i]:SetTemplate(E.db.bags.transparent and 'Transparent', true)
-		f.ContainerHolder[i]:StyleButton()
-		f.ContainerHolder[i]:SetNormalTexture("")
-		f.ContainerHolder[i]:SetPushedTexture("")
-		f.ContainerHolder[i]:SetCheckedTexture(nil)
-		f.ContainerHolder[i].id = bagID
-		f.ContainerHolder[i]:HookScript("OnEnter", function(ch) B.SetSlotAlphaForBag(ch, f) end)
-		f.ContainerHolder[i]:HookScript("OnLeave", function(ch) B.ResetSlotAlphaForBags(ch, f) end)
-
-		f.ContainerHolder[i].iconTexture = _G[f.ContainerHolder[i]:GetName()..'IconTexture']
-		f.ContainerHolder[i].iconTexture:SetInside()
-		f.ContainerHolder[i].iconTexture:SetTexCoord(unpack(E.TexCoords))
-
-		if isBank then
-			f.ContainerHolder[i]:SetID(bagID - 4)
-			if not f.ContainerHolder[i].tooltipText then f.ContainerHolder[i].tooltipText = "" end
-		else
-			if bagID == 0 then --Backpack needs different setup
-				f.ContainerHolder[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-				f.ContainerHolder[i]:HookScript('OnEnter', function(s)
-					GameTooltip:SetOwner(s, "ANCHOR_LEFT", 0, 4);
-					GameTooltip:ClearLines()
-					GameTooltip:SetText(BACKPACK_TOOLTIP, 1.0, 1.0, 1.0);
-					local keyBinding = GetBindingKey("TOGGLEBACKPACK");
-					if ( keyBinding ) then
-						GameTooltip:AppendText(" "..NORMAL_FONT_COLOR_CODE.."("..keyBinding..")"..FONT_COLOR_CODE_CLOSE)
-					end
-					GameTooltip:Show()
-				end)
-				f.ContainerHolder[i]:HookScript('OnLeave', GameTooltip_Hide)
-				f.ContainerHolder[i]:SetScript('OnClick', PutItemInBackpack)
-				f.ContainerHolder[i]:SetScript('OnReceiveDrag', PutItemInBackpack)
-				f.ContainerHolder[i].iconTexture:SetTexture("Interface/AddOns/ElvUI/Media/Textures/Button-Backpack-Up")
-			elseif bagID == -2 then
-				f.ContainerHolder[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-				f.ContainerHolder[i]:SetScript('OnReceiveDrag', function()
-					if (CursorHasItem()) then
-						PutKeyInKeyRing();
-					end
-				end)
-				f.ContainerHolder[i]:HookScript('OnEnter', function(s)
-					GameTooltip:SetOwner(s, "ANCHOR_LEFT", 0, 4);
-					GameTooltip:ClearLines()
-					GameTooltip:SetText(KEYRING, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-					GameTooltip:Show()
-
-					B:KeyRing_Open()
-				end)
-				f.ContainerHolder[i]:HookScript('OnLeave', function()
-					GameTooltip_Hide()
-					B:HandleKeyRing()
-				end)
-				f.ContainerHolder[i].iconTexture:SetTexture("Interface/ICONS/INV_Misc_Key_03")
-			end
-		end
-
-		f.Bags[bagID] = CreateFrame('Frame', f:GetName()..'Bag'..bagID, f.holderFrame)
-		f.Bags[bagID]:SetID(bagID)
-
-		for slotID = 1, MAX_CONTAINER_ITEMS do
-			f.Bags[bagID][slotID] = B:ConstructContainerButton(f, slotID, bagID)
-		end
-	end
-
 	--Sort Button
 	f.sortButton = CreateFrame("Button", name..'SortButton', f)
 	f.sortButton:Size(16 + E.Border, 16 + E.Border)
@@ -977,10 +1035,6 @@ function B:ConstructContainerFrame(name, isBank)
 	f.sortButton.ttText = L["Sort Bags"]
 	f.sortButton:SetScript('OnEnter', B.Tooltip_Show)
 	f.sortButton:SetScript('OnLeave', GameTooltip_Hide)
-
-	if (isBank and E.db.bags.disableBankSort) or (not isBank and E.db.bags.disableBagSort) then
-		f.sortButton:Disable()
-	end
 
 	--Bags Button
 	f.bagsButton = CreateFrame("Button", name..'BagsButton', f)
@@ -1016,7 +1070,7 @@ function B:ConstructContainerFrame(name, isBank)
 	f.editBox.searchIcon:Size(15, 15)
 
 	if isBank then
-		for _, event in next, f.events do
+		for _, event in pairs(f.events) do
 			f:RegisterEvent(event)
 		end
 
@@ -1029,6 +1083,9 @@ function B:ConstructContainerFrame(name, isBank)
 				B:CommandDecorator(B.SortBags, 'bank')()
 			end
 		end)
+		if E.db.bags.disableBankSort then
+			f.sortButton:Disable()
+		end
 
 		--Toggle Bags Button
 		f.bagsButton:Point("RIGHT", f.sortButton, "LEFT", -5, 0)
@@ -1094,6 +1151,9 @@ function B:ConstructContainerFrame(name, isBank)
 			if not f.registerUpdate then B:SortingFadeBags(f, true) end
 			B:CommandDecorator(B.SortBags, 'bags')()
 		end)
+		if E.db.bags.disableBagSort then
+			f.sortButton:Disable()
+		end
 
 		--Bags Button
 		f.bagsButton:Point("RIGHT", f.sortButton, "LEFT", -5, 0)
@@ -1116,7 +1176,7 @@ function B:ConstructContainerFrame(name, isBank)
 		f.vendorGraysButton:SetScript("OnLeave", GameTooltip_Hide)
 		f.vendorGraysButton:SetScript("OnClick", B.VendorGrayCheck)
 
-		-- Keyring
+		-- Key Ring
 		f.keyRingButton = CreateFrame('Button', nil, f.holderFrame)
 		f.keyRingButton:Size(16 + E.Border, 16 + E.Border)
 		f.keyRingButton:SetTemplate()
@@ -1128,13 +1188,10 @@ function B:ConstructContainerFrame(name, isBank)
 		f.keyRingButton:GetPushedTexture():SetTexCoord(unpack(E.TexCoords))
 		f.keyRingButton:GetPushedTexture():SetInside()
 		f.keyRingButton:StyleButton(nil, true)
-		f.keyRingButton.ttText = L["Toggle Keyring"]
+		f.keyRingButton.ttText = L["Key Ring"]
 		f.keyRingButton:SetScript("OnEnter", B.Tooltip_Show)
 		f.keyRingButton:SetScript("OnLeave", GameTooltip_Hide)
-		f.keyRingButton:SetScript("OnClick", function()
-			B.ShowKeyRing = not B.ShowKeyRing
-			B:HandleKeyRing()
-		end)
+		f.keyRingButton:SetScript("OnClick", B.HandleKeyRing)
 
 		--Search
 		f.editBox:Point('BOTTOMLEFT', f.holderFrame, 'TOPLEFT', (E.Border * 2) + 18, E.Border * 2 + 2)
@@ -1159,87 +1216,6 @@ function B:ConstructContainerFrame(name, isBank)
 	tinsert(_G.UISpecialFrames, f:GetName()) --Keep an eye on this for taints..
 	tinsert(B.BagFrames, f)
 	return f
-end
-
-function B:ConstructContainerButton(parent, slotID, bagID)
-	local slot = CreateFrame("CheckButton", parent.Bags[bagID]:GetName()..'Slot'..slotID, parent.Bags[bagID], bagID == -1 and 'BankItemButtonGenericTemplate' or 'ContainerFrameItemButtonTemplate');
-	slot:StyleButton()
-	slot:SetTemplate(E.db.bags.transparent and 'Transparent', true)
-	slot:SetNormalTexture(nil)
-	slot:SetCheckedTexture(nil)
-
-	if _G[slot:GetName()..'NewItemTexture'] then
-		_G[slot:GetName()..'NewItemTexture']:Hide()
-	end
-
-	slot.Count:ClearAllPoints()
-	slot.Count:Point('BOTTOMRIGHT', 0, 2)
-	slot.Count:FontTemplate(E.Libs.LSM:Fetch("font", E.db.bags.countFont), E.db.bags.countFontSize, E.db.bags.countFontOutline)
-
-	if not (slot.questIcon) then
-		slot.questIcon = _G[slot:GetName()..'IconQuestTexture'] or _G[slot:GetName()].IconQuestTexture
-		slot.questIcon:SetTexture(E.Media.Textures.BagQuestIcon)
-		slot.questIcon:SetTexCoord(0, 1, 0, 1)
-		slot.questIcon:SetInside()
-		slot.questIcon:Hide()
-	end
-
-	if slot.UpgradeIcon then
-		slot.UpgradeIcon:SetTexture(E.Media.Textures.BagUpgradeIcon)
-		slot.UpgradeIcon:SetTexCoord(0, 1, 0, 1)
-		slot.UpgradeIcon:SetInside()
-		slot.UpgradeIcon:Hide()
-	end
-
-	if not slot.JunkIcon then
-		slot.JunkIcon = slot:CreateTexture(nil, "OVERLAY")
-		slot.JunkIcon:SetAtlas("bags-junkcoin", true)
-		slot.JunkIcon:Point("TOPLEFT", 1, 0)
-		slot.JunkIcon:Hide()
-	end
-
-	if bagID == -2 then
-		slot.keyringTexture = slot:CreateTexture(nil, "BORDER")
-		slot.keyringTexture:SetAlpha(.5)
-		slot.keyringTexture:SetInside(slot)
-		slot.keyringTexture:SetTexture("Interface/ContainerFrame/KeyRing-Bag-Icon")
-		slot.keyringTexture:SetTexCoord(unpack(E.TexCoords))
-		slot.keyringTexture:SetDesaturated(true)
-	end
-
-	slot.iconTexture = _G[slot:GetName()..'IconTexture']
-	slot.iconTexture:SetInside(slot)
-	slot.iconTexture:SetTexCoord(unpack(E.TexCoords))
-
-	slot.searchOverlay:SetAllPoints()
-	slot.cooldown = _G[slot:GetName()..'Cooldown']
-	slot.cooldown.CooldownOverride = 'bags'
-	E:RegisterCooldown(slot.cooldown)
-	slot.bagID = bagID
-	slot.slotID = slotID
-
-	slot.itemLevel = slot:CreateFontString(nil, 'OVERLAY')
-	slot.itemLevel:Point("BOTTOMRIGHT", 0, 2)
-	slot.itemLevel:FontTemplate(E.Libs.LSM:Fetch("font", E.db.bags.itemLevelFont), E.db.bags.itemLevelFontSize, E.db.bags.itemLevelFontOutline)
-
-	slot.bindType = slot:CreateFontString(nil, 'OVERLAY')
-	slot.bindType:Point("TOP", 0, -2)
-	slot.bindType:FontTemplate(E.Libs.LSM:Fetch("font", E.db.bags.itemLevelFont), E.db.bags.itemLevelFontSize, E.db.bags.itemLevelFontOutline)
-
-	if slot.BattlepayItemTexture then
-		slot.BattlepayItemTexture:Hide()
-	end
-
-	if not slot.newItemGlow then
-		slot.newItemGlow = slot:CreateTexture(nil, "OVERLAY")
-		slot.newItemGlow:SetInside()
-		slot.newItemGlow:SetTexture(E.Media.Textures.BagNewItemGlow)
-		slot.newItemGlow:Hide()
-		parent.NewItemGlow.Fade:AddChild(slot.newItemGlow)
-		slot:HookScript('OnEnter', B.HideSlotItemGlow)
-	end
-
-	return slot
 end
 
 function B:ToggleBags(id)
@@ -1288,7 +1264,7 @@ function B:OpenBags()
 
 	B.BagFrame:RegisterEvent("BAG_UPDATE")
 	B.BagFrame:RegisterEvent("BAG_UPDATE_COOLDOWN")
-	for _, event in next, B.BagFrame.events do
+	for _, event in pairs(B.BagFrame.events) do
 		B.BagFrame:RegisterEvent(event)
 	end
 
@@ -1305,7 +1281,7 @@ function B:CloseBags()
 	B.BagFrame:UnregisterEvent("BAG_UPDATE")
 	B.BagFrame:UnregisterEvent("BAG_UPDATE_COOLDOWN")
 
-	for _, event in next, B.BagFrame.events do
+	for _, event in pairs(B.BagFrame.events) do
 		B.BagFrame:UnregisterEvent(event)
 	end
 
@@ -1344,7 +1320,7 @@ function B:HideItemGlow(bag)
 	if bag.NewItemGlow:IsPlaying() then
 		bag.NewItemGlow:Stop()
 
-		for _, itemGlow in next, bag.NewItemGlow.Fade.children do
+		for _, itemGlow in pairs(bag.NewItemGlow.Fade.children) do
 			itemGlow:SetAlpha(0)
 		end
 	end
@@ -1362,7 +1338,8 @@ end
 
 function B:OpenBank()
 	if not B.BankFrame then
-		B.BankFrame = B:ConstructContainerFrame('ElvUI_BankContainerFrame', true)
+		B.BankFrame = B:ContructContainerFrame('ElvUI_BankContainerFrame', true)
+		B:SetupItemGlow(B.BankFrame)
 	end
 
 	B.BankFrame:RegisterEvent("BAG_UPDATE")
@@ -1658,8 +1635,6 @@ function B:Initialize()
 
 	B.db = E.db.bags
 
-	B.KeyRingColor = { 1, 1, 0}
-
 	B.ProfessionColors = {
 		[0x0001]   = { B.db.colors.profession.quiver.r, B.db.colors.profession.quiver.g, B.db.colors.profession.quiver.b},
 		[0x0002]   = { B.db.colors.profession.ammoPouch.r, B.db.colors.profession.ammoPouch.g, B.db.colors.profession.ammoPouch.b},
@@ -1705,7 +1680,8 @@ function B:Initialize()
 	ElvUIBankMover.POINT = "BOTTOM"
 
 	--Create Bag Frame
-	B.BagFrame = B:ConstructContainerFrame('ElvUI_ContainerFrame')
+	B.BagFrame = B:ContructContainerFrame('ElvUI_ContainerFrame')
+	B:SetupItemGlow(B.BagFrame)
 
 	--Hook onto Blizzard Functions
 	B:SecureHook('OpenAllBags', 'OpenBags')

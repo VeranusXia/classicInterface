@@ -4,14 +4,15 @@ local S = E:GetModule('Skins')
 --Cache global variables
 --Lua functions
 local _G = _G
-local format, strsplit = format, strsplit
+local format, split = string.format, string.split
 --WoW API / Variables
 local FauxScrollFrame_GetOffset = FauxScrollFrame_GetOffset
 local GetBattlefieldScore = GetBattlefieldScore
+local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 local hooksecurefunc = hooksecurefunc
 
-function S:SkinWorldStateScore()
-	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.bgscore) then return end
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.bgscore then return end
 
 	local WorldStateScoreFrame = _G.WorldStateScoreFrame
 	S:HandleFrame(WorldStateScoreFrame, true, nil, 0, -5, -107, 25)
@@ -60,4 +61,4 @@ function S:SkinWorldStateScore()
 	end)
 end
 
-S:AddCallback('SkinWorldStateScore')
+S:AddCallback('Skin_WorldStateScore', LoadSkin)

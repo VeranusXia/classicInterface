@@ -18,8 +18,8 @@ local function skinFriendRequest(frame)
 	frame.isSkinned = true
 end
 
-function S:FriendsFrame()
-	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.friends) then return end
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.friends then return end
 
 	-- Friends Frame
 	local FriendsFrame = _G.FriendsFrame
@@ -563,4 +563,4 @@ function S:FriendsFrame()
 	S:HandleScrollBar(_G.RaidInfoScrollFrameScrollBar)
 end
 
-S:AddCallback('FriendsFrame')
+S:AddCallback('Skin_Friends', LoadSkin)

@@ -8,7 +8,7 @@
 	<Script file="units.lua"/>
 	<Script file="colors.lua"/>
 
-	<Script file="elements\additionalpower.lua"/>
+	<!--Script file="elements\additionalpower.lua"/-->
 	<Script file="elements\assistantindicator.lua"/>
 	<Script file="elements\auras.lua"/>
 	<Script file="elements\castbar.lua"/>
@@ -32,7 +32,6 @@
 	<Script file="elements\resurrectindicator.lua"/>
 	<Script file="elements\tags.lua"/>
 	<Script file="elements\threatindicator.lua"/>
-	<Script file="elements\totems.lua"/>
 
 	<Script file="finalize.lua"/>
 

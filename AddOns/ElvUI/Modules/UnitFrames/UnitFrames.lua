@@ -18,24 +18,14 @@ local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
 local hooksecurefunc = hooksecurefunc
 local InCombatLockdown = InCombatLockdown
-local IsReplacingUnit = IsReplacingUnit
 local RegisterStateDriver = RegisterStateDriver
-local SetCVar = SetCVar
-local UnitExists = UnitExists
-local UnitIsEnemy = UnitIsEnemy
-local UnitIsFriend = UnitIsFriend
 local UnitFrame_OnEnter = UnitFrame_OnEnter
 local UnitFrame_OnLeave = UnitFrame_OnLeave
 local UnregisterAttributeDriver = UnregisterAttributeDriver
 local UnregisterStateDriver = UnregisterStateDriver
+local CompactRaidFrameContainer = CompactRaidFrameContainer
 
 local C_NamePlate_GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
-local SOUNDKIT_IG_CREATURE_AGGRO_SELECT = SOUNDKIT.IG_CREATURE_AGGRO_SELECT
-local SOUNDKIT_IG_CHARACTER_NPC_SELECT = SOUNDKIT.IG_CHARACTER_NPC_SELECT
-local SOUNDKIT_IG_CREATURE_NEUTRAL_SELECT = SOUNDKIT.IG_CREATURE_NEUTRAL_SELECT
-local SOUNDKIT_INTERFACE_SOUND_LOST_TARGET_UNIT = SOUNDKIT.INTERFACE_SOUND_LOST_TARGET_UNIT
-local PlaySound = PlaySound
-
 -- GLOBALS: ElvUF_Parent
 
 local _, ns = ...
@@ -256,7 +246,11 @@ function UF:Construct_UF(frame, unit)
 	frame.RaisedElementParent:SetFrameLevel(frame:GetFrameLevel() + 100)
 
 	if not self.groupunits[unit] then
-		UF["Construct_"..gsub(E:StringTitle(unit), 't(arget)', 'T%1').."Frame"](self, frame, unit)
+		local stringTitle = E:StringTitle(unit)
+		if stringTitle:find('target') then
+			stringTitle = gsub(stringTitle, 'target', 'Target')
+		end
+		self["Construct_"..stringTitle.."Frame"](self, frame, unit)
 	else
 		UF["Construct_"..E:StringTitle(self.groupunits[unit]).."Frames"](self, frame, unit)
 	end
@@ -535,7 +529,8 @@ function UF:CreateAndUpdateUFGroup(group, numGroup)
 
 	for i=1, numGroup do
 		local unit = group..i
-		local frameName = gsub(E:StringTitle(unit), 't(arget)', 'T%1')
+		local frameName = E:StringTitle(unit)
+		frameName = frameName:gsub('t(arget)', 'T%1')
 		local frame = self[unit]
 
 		if not frame then
@@ -547,7 +542,8 @@ function UF:CreateAndUpdateUFGroup(group, numGroup)
 			self[unit] = frame
 		end
 
-		frameName = gsub(E:StringTitle(group), 't(arget)', 'T%1')
+		frameName = E:StringTitle(group)
+		frameName = frameName:gsub('t(arget)', 'T%1')
 		frame.Update = function()
 			UF["Update_"..E:StringTitle(frameName).."Frames"](self, frame, self.db.units[group])
 		end
@@ -752,22 +748,20 @@ end
 function UF.headerPrototype:Update(isForced)
 	local group = self.groupName
 	local db = UF.db.units[group]
-	local groupName = E:StringTitle(group)
-
-	UF["Update_"..groupName.."Header"](UF, self, db, isForced)
+	UF["Update_"..E:StringTitle(group).."Header"](UF, self, db, isForced)
 
 	local i = 1
 	local child = self:GetAttribute("child" .. i)
 
 	while child do
-		UF["Update_"..groupName.."Frames"](UF, child, db)
+		UF["Update_"..E:StringTitle(group).."Frames"](UF, child, db)
 
 		if _G[child:GetName()..'Pet'] then
-			UF["Update_"..groupName.."Frames"](UF, _G[child:GetName()..'Pet'], db)
+			UF["Update_"..E:StringTitle(group).."Frames"](UF, _G[child:GetName()..'Pet'], db)
 		end
 
 		if _G[child:GetName()..'Target'] then
-			UF["Update_"..groupName.."Frames"](UF, _G[child:GetName()..'Target'], db)
+			UF["Update_"..E:StringTitle(group).."Frames"](UF, _G[child:GetName()..'Target'], db)
 		end
 
 		i = i + 1
@@ -846,12 +840,12 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerUpdat
 	end
 
 	if not self[group] then
-		local groupName = E:StringTitle(group)
-		ElvUF:RegisterStyle("ElvUF_"..groupName, UF["Construct_"..groupName.."Frames"])
-		ElvUF:SetActiveStyle("ElvUF_"..groupName)
+		local stringTitle = E:StringTitle(group)
+		ElvUF:RegisterStyle("ElvUF_"..stringTitle, UF["Construct_"..stringTitle.."Frames"])
+		ElvUF:SetActiveStyle("ElvUF_"..stringTitle)
 
 		if db.numGroups then
-			self[group] = CreateFrame('Frame', 'ElvUF_'..groupName, ElvUF_Parent, 'SecureHandlerStateTemplate');
+			self[group] = CreateFrame('Frame', 'ElvUF_'..stringTitle, ElvUF_Parent, 'SecureHandlerStateTemplate');
 			self[group].groups = {}
 			self[group].groupName = group
 			self[group].template = self[group].template or template
@@ -861,7 +855,7 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerUpdat
 				UF.headerFunctions[group][k] = v
 			end
 		else
-			self[group] = self:CreateHeader(ElvUF_Parent, groupFilter, "ElvUF_"..groupName, template, group, headerTemplate)
+			self[group] = self:CreateHeader(ElvUF_Parent, groupFilter, "ElvUF_"..E:StringTitle(group), template, group, headerTemplate)
 		end
 
 		self[group].db = db
@@ -871,15 +865,14 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerUpdat
 
 	self[group].numGroups = numGroups
 	if numGroups then
-		local groupName = E:StringTitle(self[group].groupName)
 		if db.raidWideSorting then
 			if not self[group].groups[1] then
-				self[group].groups[1] = self:CreateHeader(self[group], nil, "ElvUF_"..groupName..'Group1', template or self[group].template, nil, headerTemplate or self[group].headerTemplate)
+				self[group].groups[1] = self:CreateHeader(self[group], nil, "ElvUF_"..E:StringTitle(self[group].groupName)..'Group1', template or self[group].template, nil, headerTemplate or self[group].headerTemplate)
 			end
 		else
 			while numGroups > #self[group].groups do
 				local index = tostring(#self[group].groups + 1)
-				 tinsert(self[group].groups, self:CreateHeader(self[group], index, "ElvUF_"..groupName..'Group'..index, template or self[group].template, nil, headerTemplate or self[group].headerTemplate))
+				 tinsert(self[group].groups, self:CreateHeader(self[group], index, "ElvUF_"..E:StringTitle(self[group].groupName)..'Group'..index, template or self[group].template, nil, headerTemplate or self[group].headerTemplate))
 			end
 		end
 
@@ -910,7 +903,6 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerUpdat
 	else
 		self[group].db = db
 
-		local groupName = E:StringTitle(group)
 		if not UF.headerFunctions[group] then UF.headerFunctions[group] = {} end
 		UF.headerFunctions[group].Update = function()
 			local db = UF.db.units[group]
@@ -922,18 +914,18 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerUpdat
 				end
 				return
 			end
-			UF["Update_"..groupName.."Header"](UF, UF[group], db)
+			UF["Update_"..E:StringTitle(group).."Header"](UF, UF[group], db)
 
 			for i=1, UF[group]:GetNumChildren() do
 				local child = select(i, UF[group]:GetChildren())
-				UF["Update_"..groupName.."Frames"](UF, child, UF.db.units[group])
+				UF["Update_"..E:StringTitle(group).."Frames"](UF, child, UF.db.units[group])
 
 				if _G[child:GetName()..'Target'] then
-					UF["Update_"..groupName.."Frames"](UF, _G[child:GetName()..'Target'], UF.db.units[group])
+					UF["Update_"..E:StringTitle(group).."Frames"](UF, _G[child:GetName()..'Target'], UF.db.units[group])
 				end
 
 				if _G[child:GetName()..'Pet'] then
-					UF["Update_"..groupName.."Frames"](UF, _G[child:GetName()..'Pet'], UF.db.units[group])
+					UF["Update_"..E:StringTitle(group).."Frames"](UF, _G[child:GetName()..'Pet'], UF.db.units[group])
 				end
 			end
 
@@ -941,7 +933,7 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerUpdat
 		end
 
 		if headerUpdate then
-			UF["Update_"..groupName.."Header"](self, self[group], db)
+			UF["Update_"..E:StringTitle(group).."Header"](self, self[group], db)
 		else
 			UF.headerFunctions[group]:Update(self[group])
 		end
@@ -957,7 +949,8 @@ function UF:CreateAndUpdateUF(unit)
 	assert(unit, 'No unit provided to create or update.')
 	if InCombatLockdown() then UF:RegisterEvent('PLAYER_REGEN_ENABLED'); return end
 
-	local frameName = gsub(E:StringTitle(unit), 't(arget)', 'T%1')
+	local frameName = E:StringTitle(unit)
+	frameName = frameName:gsub('t(arget)', 'T%1')
 	if not UF[unit] then
 		UF[unit] = ElvUF:Spawn(unit, 'ElvUF_'..frameName)
 		UF.units[unit] = unit
@@ -1075,8 +1068,7 @@ function UF:DisableBlizzard()
 			_G.CompactRaidFrameManager:HookScript('OnShow', HideRaid)
 			_G.CompactRaidFrameManager.hookedHide = true
 		end
-
-		_G.CompactRaidFrameContainer:UnregisterAllEvents()
+		CompactRaidFrameContainer:UnregisterAllEvents()
 
 		HideRaid()
 	end
@@ -1373,26 +1365,6 @@ function UF:ToggleTransparentStatusBar(isTransparent, statusBar, backdropTex, ad
 	end
 end
 
-function UF:TargetSound(unit)
-	if UnitExists(unit) and not IsReplacingUnit() then
-		if UnitIsEnemy(unit, "player") then
-			PlaySound(SOUNDKIT_IG_CREATURE_AGGRO_SELECT)
-		elseif UnitIsFriend("player", unit) then
-			PlaySound(SOUNDKIT_IG_CHARACTER_NPC_SELECT)
-		else
-			PlaySound(SOUNDKIT_IG_CREATURE_NEUTRAL_SELECT)
-		end
-	else
-		PlaySound(SOUNDKIT_INTERFACE_SOUND_LOST_TARGET_UNIT)
-	end
-end
-
-function UF:PLAYER_TARGET_CHANGED()
-	if E.db.unitframe.targetSound then
-		UF:TargetSound("target")
-	end
-end
-
 function UF:Initialize()
 	self.db = E.db.unitframe
 	self.thinBorders = self.db.thinBorders or E.PixelMode
@@ -1410,7 +1382,6 @@ function UF:Initialize()
 
 	self:LoadUnits()
 	self:RegisterEvent('PLAYER_ENTERING_WORLD')
-	self:RegisterEvent('PLAYER_TARGET_CHANGED')
 
 	--InterfaceOptionsFrameCategoriesButton9:SetScale(0.0001)
 	--[[if E.private.unitframe.disabledBlizzardFrames.arena and E.private.unitframe.disabledBlizzardFrames.focus and E.private.unitframe.disabledBlizzardFrames.party then

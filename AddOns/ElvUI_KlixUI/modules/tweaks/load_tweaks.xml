@@ -1,6 +1,0 @@
-﻿<Ui xmlns="http://www.blizzard.com/wow/ui/">
-	<script file="cinematic.lua"/>
-	<script file="speedyloot.lua"/>
-	<script file="easydelete.lua"/>
-	<script file="countdown.lua"/>
-</Ui>

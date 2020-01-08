@@ -5,8 +5,8 @@ local S = E:GetModule('Skins')
 --Lua functions
 local _G = _G
 
-function S:TaxiFrame()
-	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.taxi) then return end
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.taxi then return end
 
 	local TaxiFrame = _G.TaxiFrame
 	S:HandleFrame(TaxiFrame, true, nil, 11, -12, -32, 76)
@@ -20,4 +20,4 @@ function S:TaxiFrame()
 	S:HandleCloseButton(_G.TaxiCloseButton, TaxiFrame.backdrop)
 end
 
-S:AddCallback('TaxiFrame')
+S:AddCallback('Skin_Taxi', LoadSkin)
