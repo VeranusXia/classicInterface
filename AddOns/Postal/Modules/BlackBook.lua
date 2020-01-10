@@ -356,22 +356,25 @@ function Postal_BlackBook.RemoveContact(dropdownbutton, arg1, arg2, checked)
 end
 
 function Postal_BlackBook:SortAndCountNumFriends()
+--	DEFAULT_CHAT_FRAME:AddMessage("I've got " .. (C_FriendList.GetNumFriends()) .. " friend(s)");
 	wipe(sorttable)
-	--deathcore - check it here...
-    --local numFriends = GetNumFriends()
 	local numFriends = C_FriendList.GetNumFriends()
-    for i = 1, numFriends do
-        local info = C_FriendList.GetFriendInfoByIndex(i)
-        --local name = C_FriendList.GetFriendInfo(i)
-		sorttable[i] = info.name --GetFriendInfo(i)
+	for i = 1, numFriends do
+--		local FriendInfo = C_FriendList.GetFriendInfoByIndex(i).name
+		sorttable[i] = C_FriendList.GetFriendInfoByIndex(i).name
 	end
 
 	-- Battle.net friends
 	if BNGetNumFriends then -- For pre 3.3.5 backwards compat
 		local numBNetTotal, numBNetOnline = BNGetNumFriends()
+
+--	DEFAULT_CHAT_FRAME:AddMessage("I've got " .. (numBNetOnline) .. " friend(s)");
+
 		for i= 1, numBNetOnline do
 			local presenceID, presenceName, battleTag, isBattleTagPresence, toonName, toonID, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR = BNGetFriendInfo(i)
 			if (toonName and client == BNET_CLIENT_WOW and CanCooperateWithGameAccount(toonID)) then
+--					DEFAULT_CHAT_FRAME:AddMessage("I've got " .. (toonName) .. " friend(s)");
+
 				-- Check if already on friends list
 				local alreadyOnList = false
 				for j = 1, numFriends do
@@ -390,6 +393,11 @@ function Postal_BlackBook:SortAndCountNumFriends()
 
 	-- Sort the list
 	if numFriends > 0 and not ignoresortlocale[GetLocale()] then table.sort(sorttable) end
+
+--	for l= 1, numFriends do
+--		local test = sorttable[l];
+--		DEFAULT_CHAT_FRAME:AddMessage("I've got1 " .. (test) .. " friend(s)");
+--	end
 
 	-- Store upvalue
 	numFriendsOnList = numFriends
@@ -589,7 +597,6 @@ elseif UIDROPDOWNMENU_MENU_VALUE == "allalt" then
 		elseif UIDROPDOWNMENU_MENU_VALUE == "friend" then
 			-- Friends list
 			local numFriends = Postal_BlackBook:SortAndCountNumFriends()
-
 			-- 25 or less, don't need multi level menus
 			if numFriends > 0 and numFriends <= 25 then
 				for i = 1, numFriends do
