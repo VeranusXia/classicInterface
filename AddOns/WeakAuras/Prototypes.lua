@@ -107,123 +107,84 @@ function WeakAuras.UnitChannelInfo(unit)
   end
 end
 
--- encounterJournalID => encounterID
-WeakAuras.encounter_table = {
-  -- Uldir
-  [2168] = 2144, -- Taloc the Corrupted
-  [2167] = 2141, -- MOTHER
-  [2146] = 2128, -- Fetid Devourer
-  [2169] = 2136, -- Zek'voz, Herald of N'zoth
-  [2195] = 2145, -- Zul, Reborn
-  [2194] = 2135, -- Mythrax the Unraveler
-  [2166] = 2134, -- Vectis
-  [2147] = 2122, -- G'huun
-  [2344] = 2265, -- Champion of the Light
-  -- Battle for Dazar'alor
-  --[2344] = 2265, -- Champion of the Light (A)
-  [2333] = 2265, -- Champion of the Light (H)
-  [2340] = 2284, -- Grong, the Revenant (A)
-  [2325] = 2263, -- Grong, the Jungle Lord (H)
-  [2323] = 2285, -- Jadefire Masters (A)
-  [2341] = 2266, -- Jadefire Masters (H)
-  [2342] = 2271, -- Opulence
-  [2330] = 2268, -- Conclave of the Chosen
-  [2334] = 2276, -- High Tinker Mekkatorque
-  [2335] = 2272, -- King Rastakhan
-  [2337] = 2280, -- Stormwall Blockade
-  [2343] = 2281, -- Lady Jaina Proudmoore
-  -- Crucible of Storms
-  [2328] = 2269, -- The Restless Cabal
-  [2332] = 2273, -- Uu'nat, Harbinger of the Void
-  -- The Eternal Palace
-  [2352] = 2298, -- Abyssal Commander Sivara
-  [2353] = 2305, -- Radiance of Ashara
-  [2347] = 2289, -- Blackwater Behemoth
-  [2354] = 2304, -- Lady Ashvane
-  [2351] = 2303, -- The Hatchery (Orgozoa)
-  [2359] = 2311, -- The Queen's Court
-  [2349] = 2293, -- Za'qul, Herald of N'zoth
-  [2361] = 2299, -- Queen Azshara
-  -- Ny'alotha, the Waking City
-  [2368] = 2329, -- Wrathion, the Black Emperor
-  [2365] = 2327, -- Maut
-  [2369] = 2334, -- The Prophet Skitra
-  [2377] = 2328, -- Dark Inquisitor Xanesh
-  [2372] = 2333, -- The Hivemind
-  [2367] = 2335, --	Shad'har the Insatiable
-  [2373] = 2343, -- Drest'agath
-  [2374] = 2345, -- Il'gynoth, Corruption Reborn
-  [2370] = 2336, -- Vexiona
-  [2364] = 2331, -- Ra-den the Despoiled
-  [2366] = 2337, -- Carapace of N'Zoth
-  [2375] = 2344, -- N'Zoth the Corruptor
-}
+
+
+local encounter_list = ""
+local zoneId_list = ""
+local zoneGroupId_list = ""
+function WeakAuras.InitializeEncounterAndZoneLists()
+  if WeakAuras.IsClassic() then return "" end
+  if encounter_list ~= "" then
+    return
+  end
+
+  EJ_SelectTier(EJ_GetNumTiers())
+
+  for _, inRaid in ipairs({false, true}) do
+    local instance_index = 1
+    local instance_id = EJ_GetInstanceByIndex(instance_index, inRaid)
+
+    local title = inRaid and L["Raids"] or L["Dungeons"]
+    zoneId_list = ("%s|cffffd200%s|r\n"):format(zoneId_list, title)
+    zoneGroupId_list = ("%s|cffffd200%s|r\n"):format(zoneGroupId_list, title)
+
+    while instance_id do
+      EJ_SelectInstance(instance_id)
+      local instance_name, _, _, _, _, _, dungeonAreaMapID = EJ_GetInstanceInfo(instance_id)
+      local ej_index = 1
+      local boss, _, _, _, _, _, encounter_id = EJ_GetEncounterInfoByIndex(ej_index, instance_id)
+
+      -- zone ids and zone group ids
+      if dungeonAreaMapID and dungeonAreaMapID ~= 0 then
+        local mapGroupId = C_Map.GetMapGroupID(dungeonAreaMapID)
+        if mapGroupId then
+          zoneGroupId_list = ("%s%s: %d\n"):format(zoneGroupId_list, instance_name, mapGroupId)
+          local maps = ""
+          for k, map in ipairs(C_Map.GetMapGroupMembersInfo(mapGroupId)) do
+            if map.mapID then
+              maps = maps .. map.mapID .. ", "
+            end
+          end
+          maps = maps:match "^(.*), \n?$" or "" -- trim last ", "
+          zoneId_list = ("%s%s: %s\n"):format(zoneId_list, instance_name, maps)
+        else
+          zoneId_list = ("%s%s: %d\n"):format(zoneId_list, instance_name, dungeonAreaMapID)
+        end
+      end
+
+      -- Encounter ids
+      if inRaid then
+        while boss do
+          if encounter_id then
+            if instance_name then
+              encounter_list = ("%s|cffffd200%s|r\n"):format(encounter_list, instance_name)
+              instance_name = nil -- Only add it once per section
+            end
+            encounter_list = ("%s%s: %d\n"):format(encounter_list, boss, encounter_id)
+          end
+          ej_index = ej_index + 1
+          boss, _, _, _, _, _, encounter_id = EJ_GetEncounterInfoByIndex(ej_index, instance_id)
+        end
+        encounter_list = encounter_list .. "\n"
+      end
+      instance_index = instance_index + 1
+      instance_id = EJ_GetInstanceByIndex(instance_index, inRaid)
+    end
+    zoneId_list = zoneId_list .. "\n"
+    zoneGroupId_list = zoneGroupId_list .. "\n"
+  end
+
+  encounter_list = encounter_list:sub(1, -3) .. "\n\n" .. L["Supports multiple entries, separated by commas\n"]
+end
 
 local function get_encounters_list()
   if WeakAuras.IsClassic() then return "" end
-  local encounter_list = ""
 
-  EJ_SelectTier(EJ_GetNumTiers())
-  local instance_index = 1
-  local instance_id = EJ_GetInstanceByIndex(instance_index, true)
-  while instance_id do
-    EJ_SelectInstance(instance_id)
-    local name = EJ_GetInstanceInfo()
-    local ej_index = 1
-    local boss, _, ej_id = EJ_GetEncounterInfoByIndex(ej_index)
-    while boss do
-      local encounter_id = WeakAuras.encounter_table[ej_id]
-      if encounter_id then
-        if ej_index == 1 then
-          encounter_list = ("%s|cffffd200%s|r\n"):format(encounter_list, name)
-        end
-        encounter_list = ("%s%s: %d\n"):format(encounter_list, boss, WeakAuras.encounter_table[ej_id])
-      end
-      ej_index = ej_index + 1
-      boss, _, ej_id = EJ_GetEncounterInfoByIndex(ej_index)
-    end
-    instance_index = instance_index + 1
-    instance_id = EJ_GetInstanceByIndex(instance_index, true)
-    encounter_list = encounter_list .. "\n"
-  end
-
-  return encounter_list:sub(1, -3) .. "\n\n" .. L["Supports multiple entries, separated by commas\n"]
+  return encounter_list
 end
 
 local function get_zoneId_list()
   if WeakAuras.IsClassic() then return "" end
-  local zoneId_list = ""
-  EJ_SelectTier(EJ_GetNumTiers())
-  for _,inRaid in ipairs({false, true}) do
-    local instance_index = 1
-    local instance_id
-    local title = inRaid and L["Raids"] or L["Dungeons"]
-    zoneId_list = ("%s|cffffd200%s|r\n"):format(zoneId_list, title)
-    repeat
-      instance_id = EJ_GetInstanceByIndex(instance_index, inRaid)
-      instance_index = instance_index + 1
-      if instance_id then
-        EJ_SelectInstance(instance_id)
-        local iname,_,_, _,_,_,dungeonAreaMapID = EJ_GetInstanceInfo();
-        if dungeonAreaMapID and dungeonAreaMapID ~= 0 then
-          local mapGroupId = C_Map.GetMapGroupID(dungeonAreaMapID)
-          if mapGroupId then
-            local maps = ""
-            for k, map in ipairs(C_Map.GetMapGroupMembersInfo(mapGroupId)) do
-              if map.mapID then
-                maps = maps .. map.mapID .. ", "
-              end
-            end
-            maps = maps:match "^(.*), \n?$" or "" -- trim last ", "
-            zoneId_list = ("%s%s: %s\n"):format(zoneId_list, iname, maps)
-          else
-            zoneId_list = ("%s%s: %d\n"):format(zoneId_list, iname, dungeonAreaMapID)
-          end
-        end
-      end
-    until not instance_id
-    zoneId_list = zoneId_list .. "\n"
-  end
   local currentmap_id = C_Map.GetBestMapForUnit("player")
   local currentmap_info = C_Map.GetMapInfo(currentmap_id)
   local currentmap_name = currentmap_info and currentmap_info.name or ""
@@ -248,29 +209,6 @@ end
 
 local function get_zoneGroupId_list()
   if WeakAuras.IsClassic() then return "" end
-  local zoneGroupId_list = ""
-  EJ_SelectTier(EJ_GetNumTiers())
-  for _,inRaid in ipairs({false, true}) do
-    local instance_index = 1
-    local instance_id
-    local title = inRaid and L["Raids"] or L["Dungeons"]
-    zoneGroupId_list = ("%s|cffffd200%s|r\n"):format(zoneGroupId_list, title)
-    repeat
-      instance_id = EJ_GetInstanceByIndex(instance_index, inRaid)
-      instance_index = instance_index + 1
-      if instance_id then
-        EJ_SelectInstance(instance_id)
-        local iname,_,_, _,_,_,dungeonAreaMapID = EJ_GetInstanceInfo();
-        if dungeonAreaMapID and dungeonAreaMapID ~= 0 then
-          local mapGroupId = C_Map.GetMapGroupID(dungeonAreaMapID)
-          if mapGroupId then
-            zoneGroupId_list = ("%s%s: %d\n"):format(zoneGroupId_list, iname, mapGroupId)
-          end
-        end
-      end
-    until not instance_id
-    zoneGroupId_list = zoneGroupId_list .. "\n"
-  end
   local currentmap_id = C_Map.GetBestMapForUnit("player")
   local currentmap_info = C_Map.GetMapInfo(currentmap_id)
   local currentmap_name = currentmap_info and currentmap_info.name
@@ -1048,7 +986,7 @@ WeakAuras.load_prototype = {
       width = WeakAuras.normalWidth,
       init = "arg",
       values = "group_types",
-      events = {"GROUP_LEFT", "GROUP_JOINED"}
+      events = {"GROUP_ROSTER_UPDATE"}
     },
     {
       name = "name",
@@ -1137,7 +1075,7 @@ WeakAuras.load_prototype = {
       type = "multiselect",
       values = valuesForTalentFunction,
       test = "WeakAuras.CheckTalentByIndex(%d)",
-      events = {"PLAYER_TALENT_UPDATE"}
+      events = WeakAuras.IsClassic() and {"CHARACTER_POINTS_CHANGED"} or {"PLAYER_TALENT_UPDATE"}
     },
     {
       name = "talent2",
@@ -1148,7 +1086,7 @@ WeakAuras.load_prototype = {
       enable = function(trigger)
         return trigger.use_talent ~= nil or trigger.use_talent2 ~= nil;
       end,
-      events = {"PLAYER_TALENT_UPDATE"}
+      events = WeakAuras.IsClassic() and {"CHARACTER_POINTS_CHANGED"} or {"PLAYER_TALENT_UPDATE"}
     },
     {
       name = "talent3",
@@ -1159,7 +1097,7 @@ WeakAuras.load_prototype = {
       enable = function(trigger)
         return (trigger.use_talent ~= nil and trigger.use_talent2 ~= nil) or trigger.use_talent3 ~= nil;
       end,
-      events = {"PLAYER_TALENT_UPDATE"}
+      events = WeakAuras.IsClassic() and {"CHARACTER_POINTS_CHANGED"} or {"PLAYER_TALENT_UPDATE"}
     },
     {
       name = "pvptalent",
@@ -1753,7 +1691,7 @@ WeakAuras.event_prototypes = {
             end
             state.changed = true;
           elseif ( (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_SUCCEEDED") and unit == "player") then
-            state.cost = nil;
+            state.cost = "";
             state.changed = true;
           end
         ]]
@@ -1857,7 +1795,7 @@ WeakAuras.event_prototypes = {
       {
         name = L["Spell Cost"],
         func = function(trigger, state)
-          return "back", state.cost;
+          return "back", type(state.cost) == "number" and state.cost;
         end,
         enable = function(trigger)
           return trigger.use_showCost and (not trigger.use_powertype or trigger.powertype ~= 99) and trigger.unit == "player";
@@ -1890,6 +1828,7 @@ WeakAuras.event_prototypes = {
       AddUnitChangeInternalEvents(trigger.unit, result)
       return result
     end,
+    force_events = "WA_DELAYED_PLAYER_ENTERING_WORLD",
     name = L["Alternate Power"],
     init = function(trigger)
       trigger.unit = trigger.unit or "player";
@@ -4163,7 +4102,7 @@ WeakAuras.event_prototypes = {
         ["events"] = events
       }
     end,
-    force_events = "PLAYER_TALENT_UPDATE",
+    force_events = WeakAuras.IsClassic() and "CHARACTER_POINTS_CHANGED" or "PLAYER_TALENT_UPDATE",
     name = L["Talent Selected"],
     init = function(trigger)
       local inverse = trigger.use_inverse;
@@ -6010,8 +5949,7 @@ WeakAuras.event_prototypes = {
         tinsert(pet_unit_events, "UNIT_HEALTH")
       end
       if trigger.use_ingroup ~= nil then
-        tinsert(events, "GROUP_LEFT")
-        tinsert(events, "GROUP_JOINED")
+        tinsert(events, "GROUP_ROSTER_UPDATE")
       end
 
       if trigger.use_instance_size then
@@ -6123,7 +6061,8 @@ WeakAuras.event_prototypes = {
         display = L["In Group"],
         type = "multiselect",
         values = "group_types",
-        init = "WeakAuras.GroupType()"
+        init = "WeakAuras.GroupType()",
+        events = {"GROUP_ROSTER_UPDATE"}
       },
       {
         name = "instance_size",

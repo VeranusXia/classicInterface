@@ -581,7 +581,7 @@ MessageClassifierDefaultRules = {
         ["class"] = "副本/奥妮克希亚的巢穴/{author}",
         ["conditions"] = {
             {
-                ["value"] = "黑龙",
+                ["value"] = "奥妮克希亚",
                 ["field"] = "content",
                 ["operator"] = "contain",
             },
@@ -591,7 +591,33 @@ MessageClassifierDefaultRules = {
                 ["field"] = "content",
             },
             {
+                ["value"] = "黑龙",
+                ["operator"] = "contain",
+                ["field"] = "content",
+            },
+            {
                 ["value"] = "龙妹",
+                ["field"] = "content",
+                ["operator"] = "contain",
+            },
+        },
+    },
+    {
+        id = 3027,
+        ["class"] = "副本/黑翼之巢/{author}",
+        ["conditions"] = {
+            {
+                ["value"] = "黑翼",
+                ["field"] = "content",
+                ["operator"] = "contain",
+            },
+            {
+                ["value"] = "奈法",
+                ["field"] = "content",
+                ["operator"] = "contain",
+            },
+            {
+                ["value"] = "BWL",
                 ["field"] = "content",
                 ["operator"] = "contain",
             },

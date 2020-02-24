@@ -50,7 +50,7 @@ local properties = {
     type = "bool"
   },
   glowColor = {
-    display = L["Color"],
+    display = L["Custom Color"],
     setter = "SetGlowColor",
     type = "color"
   },
@@ -191,6 +191,7 @@ local funcs = {
     end
   end,
   SetGlowType = function(self, newType)
+    newType = newType or "buttonOverlay"
     if newType == self.glowType then
       return
     end
